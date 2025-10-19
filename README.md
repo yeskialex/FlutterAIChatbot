@@ -1,7 +1,7 @@
 # Flutter_Chatbot
-##Tech Stack and Structure
+## Tech Stack and Structure
 
-###Frameworks and Services
+### Frameworks and Services
 Frontend framework: React 
 
 Backend (FaaS): Google Cloud Function
@@ -13,7 +13,7 @@ Source Control & Collaboration: GitHub
 Data source: Flutter Docs (https://docs.flutter.dev/) 
 
 
-###Structure
+### Structure
 /flutter-chatbot-project/
 ├── .github/              # For GitHub Actions (scheduler)
 ├── /frontend/            #React App
@@ -31,9 +31,9 @@ Data source: Flutter Docs (https://docs.flutter.dev/)
 └── README.md
 
 
-##Main Processes
+## Main Processes
 
-###Process 1: The Background Process (Populating the Library)
+### Process 1: The Background Process (Populating the Library)
 This runs on a schedule (e.g., weekly) and doesn't involve the user at all.
 Flow:
 ⏰ Google Cloud Scheduler: The process starts.
@@ -44,7 +44,7 @@ It sends the text to the Gemini API to be converted into numerical vector embedd
 ➡️ Stores Embeddings in...
 📚 Vertex AI Vector Search: The specialized database that holds all the knowledge.
 
-###Process 2: The Real-Time Process (Answering a Question)
+### Process 2: The Real-Time Process (Answering a Question)
 This happens instantly when a user interacts with the chat app.
 Flow:
 👨‍💻 User: Asks a question in the app
