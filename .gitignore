@@ -1,0 +1,24 @@
+claude.md
+backend_checklist.md
+tech_stack.md
+firebase_config.md
+firebase-admin-key.json
+
+# Environment files
+.env
+functions/.env
+frontend/.env
+
+# Node modules
+node_modules/
+functions/node_modules/
+frontend/node_modules/
+
+# Build outputs
+frontend/build/
+public/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
