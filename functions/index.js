@@ -71,3 +71,12 @@ exports.testFirestore = onRequest({cors: true}, async (request, response) => {
     });
   }
 });
+
+// Export simple test function
+const { simpleTest } = require('./simpleTest');
+exports.simpleTest = simpleTest;
+
+// Export mock RAG functions for frontend testing
+const { mockRAG, mockHistory } = require('./mockRAG');
+exports.mockRAG = mockRAG;
+exports.mockHistory = mockHistory;
