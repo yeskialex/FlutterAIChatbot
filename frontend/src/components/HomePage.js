@@ -1,7 +1,7 @@
 import React from 'react';
 import './HomePage.css';
 
-const HomePage = ({ onStartConversation }) => {
+const HomePage = ({ onStartConversation, user, onSignOut }) => {
   const weeklyFlows = [
     {
       week: 1,
@@ -35,8 +35,29 @@ const HomePage = ({ onStartConversation }) => {
   return (
     <div className="home-page">
       <header className="home-header">
+        <div className="user-bar">
+          <div className="user-info">
+            <span className="user-greeting">Welcome back, {user?.name || 'User'}!</span>
+            <span className="user-email">{user?.email}</span>
+          </div>
+          <button className="sign-out-btn" onClick={onSignOut}>
+            Sign Out
+          </button>
+        </div>
+
         <h1>🚀 Flutter AI Chatbot</h1>
         <p>Your intelligent companion for Flutter development</p>
+
+        <button
+          className="new-chat-btn"
+          onClick={() => onStartConversation({
+            week: 'new',
+            title: 'New Chat',
+            initialPrompt: null // No premade prompt - blank chat
+          })}
+        >
+          💬 Start New Chat
+        </button>
       </header>
 
       <div className="weekly-flows">
