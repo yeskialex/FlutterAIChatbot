@@ -72,9 +72,7 @@ exports.testFirestore = onRequest({cors: true}, async (request, response) => {
   }
 });
 
-// Export simple test function
-const { simpleTest } = require('./simpleTest');
-exports.simpleTest = simpleTest;
+// Simple test function removed
 
 // Export mock RAG functions for frontend testing
 const { mockRAG, mockHistory } = require('./mockRAG');
@@ -90,6 +88,4 @@ exports.getHistory = getHistory;
 const { runCrawler } = require('./runCrawler');
 exports.runCrawler = runCrawler;
 
-// Export content-only crawler for testing
-const { runCrawlerNoEmbeddings } = require('./run-crawler-no-embeddings');
-exports.runCrawlerNoEmbeddings = runCrawlerNoEmbeddings;
+// Content-only crawler removed

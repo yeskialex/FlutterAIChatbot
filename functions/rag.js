@@ -33,7 +33,7 @@ async function generateEmbedding(text) {
     const projectId = 'hi-project-flutter-chatbot';
     const location = 'us-central1';
 
-    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/textembedding-gecko@003:predict`;
+    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/text-embedding-004:predict`;
 
     const requestBody = {
       instances: [{
@@ -120,46 +120,119 @@ async function findSimilarDocuments(query, topK = 5) {
   try {
     // Generate embedding for the query
     const queryEmbedding = await generateEmbedding(query);
+    console.log(`Searching for: "${query}" using vector similarity`);
 
-    // TODO: Implement actual vector search when index is ready
-    // For now, return mock data for testing
+    // Try to use vector search first, fallback to Firestore if needed
+    try {
+      // TODO: Implement actual Vector Search API call when index is ready
+      // For now, use hybrid approach: Firestore + embedding similarity calculation
 
-    console.log(`Searching for: "${query}" (returning mock data)`);
+      const admin = require('firebase-admin');
+      const db = admin.firestore();
 
-    // Mock similar documents - replace with real search later
-    const mockResults = [
-      {
-        id: 'flutter_widgets_button',
-        content: 'ElevatedButton is a Material Design button that displays with elevation. Use ElevatedButton for primary actions.',
-        url: 'https://docs.flutter.dev/cookbook/forms/retrieve-input',
-        lastUpdated: '2024-01-15',
-        similarity: 0.85,
-        metadata: {
-          title: 'Flutter Buttons Guide',
-          section: 'Widgets',
-          type: 'tutorial'
-        }
-      },
-      {
-        id: 'flutter_styling_themes',
-        content: 'ThemeData allows you to customize the overall visual theme of your Flutter app, including button styles.',
-        url: 'https://docs.flutter.dev/cookbook/design/themes',
-        lastUpdated: '2024-01-10',
-        similarity: 0.78,
-        metadata: {
-          title: 'App Themes',
-          section: 'Design',
-          type: 'guide'
-        }
+      // Get all document chunks from Firestore
+      const snapshot = await db.collection('document_chunks')
+        .orderBy('createdAt', 'desc')
+        .limit(topK * 3) // Get more docs for similarity calculation
+        .get();
+
+      if (snapshot.empty) {
+        console.log('No crawled documents found, returning empty results');
+        return [];
       }
-    ];
 
-    return mockResults.slice(0, topK);
+      const documents = [];
+
+      // Calculate similarity for each document
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+
+        // Generate embedding for document content
+        const docEmbedding = await generateEmbedding(data.content);
+
+        // Calculate cosine similarity
+        const similarity = calculateCosineSimilarity(queryEmbedding, docEmbedding);
+
+        documents.push({
+          id: data.id,
+          content: data.content,
+          url: data.url,
+          lastUpdated: data.lastUpdated,
+          similarity: similarity,
+          metadata: {
+            title: data.title || data.metadata?.title || 'Flutter Documentation',
+            section: data.metadata?.section || 'General',
+            type: data.contentType || data.metadata?.type || 'guide'
+          }
+        });
+      }
+
+      // Sort by similarity score (highest first) and return top K
+      const sortedDocs = documents
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, topK);
+
+      console.log(`Found ${sortedDocs.length} documents with vector similarity`);
+      return sortedDocs;
+
+    } catch (vectorError) {
+      console.error('Vector search error, using basic search:', vectorError);
+      // Fallback to basic Firestore search
+      return await basicFirestoreSearch(query, topK);
+    }
 
   } catch (error) {
     console.error('Error searching documents:', error);
     throw error;
   }
+}
+
+/**
+ * Calculate cosine similarity between two vectors
+ * @param {number[]} vectorA
+ * @param {number[]} vectorB
+ * @returns {number} Similarity score between 0 and 1
+ */
+function calculateCosineSimilarity(vectorA, vectorB) {
+  const dotProduct = vectorA.reduce((sum, a, i) => sum + a * vectorB[i], 0);
+  const magnitudeA = Math.sqrt(vectorA.reduce((sum, a) => sum + a * a, 0));
+  const magnitudeB = Math.sqrt(vectorB.reduce((sum, b) => sum + b * b, 0));
+  return dotProduct / (magnitudeA * magnitudeB);
+}
+
+/**
+ * Basic Firestore search fallback
+ * @param {string} query
+ * @param {number} topK
+ * @returns {Promise<Array>}
+ */
+async function basicFirestoreSearch(query, topK) {
+  const admin = require('firebase-admin');
+  const db = admin.firestore();
+
+  const snapshot = await db.collection('document_chunks')
+    .orderBy('createdAt', 'desc')
+    .limit(topK)
+    .get();
+
+  const documents = [];
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    documents.push({
+      id: data.id,
+      content: data.content,
+      url: data.url,
+      lastUpdated: data.lastUpdated,
+      similarity: 0.7, // Default similarity for basic search
+      metadata: {
+        title: data.title || data.metadata?.title || 'Flutter Documentation',
+        section: data.metadata?.section || 'General',
+        type: data.contentType || data.metadata?.type || 'guide'
+      }
+    });
+  });
+
+  return documents;
 }
 
 /**

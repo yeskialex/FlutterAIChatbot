@@ -1,9 +1,11 @@
 const { onRequest } = require("firebase-functions/https");
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 const cheerio = require('cheerio');
 const axios = require('axios');
 const admin = require('firebase-admin');
 const { classifyContent } = require('./llm');
+const { addDocumentsToIndex } = require('./rag');
 
 /**
  * Fetch and parse Flutter docs sitemap
@@ -63,16 +65,11 @@ async function scrapePage(url) {
 
     // Launch browser with optimized settings
     browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--no-first-run',
-        '--no-zygote',
-        '--single-process'
-      ]
+      args: [...chromium.args, '--hide-scrollbars', '--disable-web-security'],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true
     });
 
     const page = await browser.newPage();
@@ -289,9 +286,13 @@ async function processDocument(pageData) {
 /**
  * Cloud Function to run the crawler
  */
-exports.runCrawler = onRequest({ cors: true }, async (req, res) => {
+exports.runCrawler = onRequest({
+  cors: true,
+  timeoutSeconds: 900,
+  memory: '4GiB'
+}, async (req, res) => {
   try {
-    const { testMode = true, maxPages = 3 } = req.body || {};
+    const { testMode = true, maxPages = 1 } = req.body || {};
 
     console.log(`Starting crawler (testMode: ${testMode}, maxPages: ${maxPages})`);
 
@@ -341,6 +342,26 @@ exports.runCrawler = onRequest({ cors: true }, async (req, res) => {
         });
 
         await batch.commit();
+
+        // Add chunks to vector index for semantic search
+        try {
+          const vectorDocs = chunks.map(chunk => ({
+            id: chunk.id,
+            text: chunk.content,
+            metadata: {
+              url: chunk.url,
+              title: chunk.title,
+              contentType: chunk.contentType,
+              lastUpdated: chunk.lastUpdated
+            }
+          }));
+
+          const vectorResult = await addDocumentsToIndex(vectorDocs);
+          console.log(`Added ${vectorDocs.length} documents to vector index: ${vectorResult.fileName}`);
+        } catch (vectorError) {
+          console.error('Error adding to vector index:', vectorError);
+          // Continue processing even if vector indexing fails
+        }
 
         results.processed++;
         results.totalChunks += chunks.length;

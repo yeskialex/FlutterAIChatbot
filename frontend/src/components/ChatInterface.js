@@ -45,8 +45,8 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation }) => {
     setIsLoading(true);
 
     try {
-      // Call mockRAG API
-      const response = await fetch('https://us-central1-hi-project-flutter-chatbot.cloudfunctions.net/mockRAG', {
+      // Call generateAnswer API (real AI)
+      const response = await fetch('https://generateanswer-yt3kigee5a-uc.a.run.app', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
