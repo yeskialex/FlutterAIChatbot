@@ -80,3 +80,16 @@ exports.simpleTest = simpleTest;
 const { mockRAG, mockHistory } = require('./mockRAG');
 exports.mockRAG = mockRAG;
 exports.mockHistory = mockHistory;
+
+// Export real RAG functions
+const { generateAnswer, getHistory } = require('./generateAnswer');
+exports.generateAnswer = generateAnswer;
+exports.getHistory = getHistory;
+
+// Export crawler function
+const { runCrawler } = require('./runCrawler');
+exports.runCrawler = runCrawler;
+
+// Export content-only crawler for testing
+const { runCrawlerNoEmbeddings } = require('./run-crawler-no-embeddings');
+exports.runCrawlerNoEmbeddings = runCrawlerNoEmbeddings;

@@ -1,23 +1,39 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import HomePage from './components/HomePage';
+import ChatInterface from './components/ChatInterface';
 
 function App() {
+  const [currentView, setCurrentView] = useState('home');
+  const [conversation, setConversation] = useState(null);
+
+  const startConversation = (weekData) => {
+    setConversation({
+      id: Date.now().toString(),
+      week: weekData.week,
+      title: weekData.title,
+      initialPrompt: weekData.prompt,
+      messages: []
+    });
+    setCurrentView('chat');
+  };
+
+  const goHome = () => {
+    setCurrentView('home');
+    setConversation(null);
+  };
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {currentView === 'home' ? (
+        <HomePage onStartConversation={startConversation} />
+      ) : (
+        <ChatInterface
+          conversation={conversation}
+          onGoHome={goHome}
+          onUpdateConversation={setConversation}
+        />
+      )}
     </div>
   );
 }

@@ -23,18 +23,36 @@ const INDEX_ENDPOINT = `projects/${PROJECT_ID}/locations/${LOCATION}/indexes/${I
  */
 async function generateEmbedding(text) {
   try {
-    const textEmbedding = vertex_ai.preview.getGenerativeModel({
-      model: 'text-embedding-004'
+    // Use Google Auth to call Vertex AI REST API directly
+    const { GoogleAuth } = require('google-auth-library');
+    const auth = new GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/cloud-platform']
     });
 
-    const result = await textEmbedding.embedContent({
-      content: [{
-        role: 'user',
-        parts: [{ text: text }]
+    const authClient = await auth.getClient();
+    const projectId = 'hi-project-flutter-chatbot';
+    const location = 'us-central1';
+
+    const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/textembedding-gecko@003:predict`;
+
+    const requestBody = {
+      instances: [{
+        content: text
       }]
+    };
+
+    const response = await authClient.request({
+      url: url,
+      method: 'POST',
+      data: requestBody
     });
 
-    return result.response.predictions[0].embeddings.values;
+    if (response.data.predictions && response.data.predictions[0]) {
+      return response.data.predictions[0].embeddings.values;
+    } else {
+      console.log('Full API response:', JSON.stringify(response.data, null, 2));
+      throw new Error('Unexpected API response structure');
+    }
   } catch (error) {
     console.error('Error generating embedding:', error);
     throw error;

@@ -1,0 +1,246 @@
+.message-bubble {
+  display: flex;
+  gap: 12px;
+  max-width: 80%;
+  margin-bottom: 16px;
+}
+
+.user-message {
+  flex-direction: row-reverse;
+  margin-left: auto;
+  margin-right: 0;
+}
+
+.bot-message {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.message-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.user-avatar {
+  background: #1976d2;
+  color: white;
+}
+
+.bot-avatar {
+  background: #4CAF50;
+  color: white;
+}
+
+.message-content {
+  flex: 1;
+}
+
+.message-text {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.user-message .message-text {
+  background: #1976d2;
+  color: white;
+}
+
+.bot-message .message-text {
+  background: white;
+  color: #333;
+}
+
+.error-message {
+  background: #ffebee !important;
+  border-left: 4px solid #f44336;
+  color: #d32f2f !important;
+}
+
+.message-text strong {
+  font-weight: 600;
+}
+
+.message-text em {
+  font-style: italic;
+}
+
+.message-text code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.9em;
+}
+
+.user-message .message-text code {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.confidence-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.confidence-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.confidence-bar {
+  flex: 1;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.confidence-value {
+  color: #333;
+  font-weight: 600;
+  min-width: 35px;
+}
+
+.sources-section {
+  margin-top: 12px;
+}
+
+.sources-toggle {
+  background: #f0f7ff;
+  border: 1px solid #e3f2fd;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #1976d2;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.sources-toggle:hover {
+  background: #e3f2fd;
+}
+
+.arrow {
+  transition: transform 0.2s;
+  font-size: 0.8rem;
+}
+
+.arrow.up {
+  transform: rotate(180deg);
+}
+
+.sources-list {
+  margin-top: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.source-item {
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.source-item:last-child {
+  border-bottom: none;
+}
+
+.source-link {
+  display: block;
+  padding: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s;
+}
+
+.source-link:hover {
+  background: #f8f9fa;
+}
+
+.source-title {
+  font-weight: 500;
+  color: #1976d2;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.source-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.source-url {
+  color: #666;
+  word-break: break-all;
+}
+
+.source-date,
+.source-similarity {
+  color: #888;
+}
+
+.message-time {
+  color: #999;
+  font-size: 0.75rem;
+  margin-top: 4px;
+  text-align: right;
+}
+
+.user-message .message-time {
+  text-align: left;
+}
+
+@media (max-width: 768px) {
+  .message-bubble {
+    max-width: 90%;
+    gap: 8px;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .message-text {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+  }
+
+  .confidence-indicator {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .source-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
