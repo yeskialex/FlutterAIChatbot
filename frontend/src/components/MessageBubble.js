@@ -1,4 +1,8 @@
 import React, { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
 import './MessageBubble.css';
 
 const MessageBubble = ({ message, language }) => {
@@ -32,23 +36,49 @@ const MessageBubble = ({ message, language }) => {
     });
   };
 
-  const formatContent = (content) => {
-    // Simple markdown-like formatting
-    return content
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      .replace(/\n/g, '<br>');
+  // Custom components for ReactMarkdown
+  const markdownComponents = {
+    code({ node, inline, className, children, ...props }) {
+      const match = /language-(\w+)/.exec(className || '');
+      const language = match ? match[1] : '';
+
+      return !inline && language ? (
+        <div style={{ position: 'relative' }}>
+          <SyntaxHighlighter
+            style={vscDarkPlus}
+            language={language}
+            PreTag="div"
+            {...props}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
+          <button
+            className="copy-code-btn"
+            onClick={() => {
+              navigator.clipboard.writeText(String(children));
+            }}
+            title="Copy code"
+          >
+            📋
+          </button>
+        </div>
+      ) : (
+        <code className={className} {...props}>
+          {children}
+        </code>
+      );
+    },
   };
 
   if (message.type === 'user') {
     return (
       <div className="message-bubble user-message">
         <div className="message-content">
-          <div
-            className="message-text"
-            dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
-          />
+          <div className="message-text">
+            <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
           <div className="message-time">{formatTimestamp(message.timestamp)}</div>
         </div>
         <div className="message-avatar user-avatar">
@@ -64,10 +94,11 @@ const MessageBubble = ({ message, language }) => {
         🤖
       </div>
       <div className="message-content">
-        <div
-          className={`message-text ${message.error ? 'error-message' : ''}`}
-          dangerouslySetInnerHTML={{ __html: formatContent(message.content) }}
-        />
+        <div className={`message-text ${message.error ? 'error-message' : ''}`}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {message.content}
+          </ReactMarkdown>
+        </div>
 
         {message.confidence && (
           <div className="confidence-indicator">

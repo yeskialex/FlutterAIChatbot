@@ -11,6 +11,30 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
   const [language, setLanguage] = useState('en');
   const messagesEndRef = useRef(null);
 
+  // Localized messages
+  const t = {
+    en: {
+      backButton: '← Back to Home',
+      thinking: 'Flutter AI is thinking...',
+      placeholder: 'Ask me anything about Flutter development...',
+      send: 'Send',
+      inputHelp: 'Press Enter to send, Shift+Enter for new line',
+      errorMessage: 'Sorry, I encountered an error. Please try again.',
+      apiConfigError: 'API URL is not configured. Please contact support.',
+    },
+    ko: {
+      backButton: '← 홈으로 돌아가기',
+      thinking: 'Flutter AI가 생각하고 있습니다...',
+      placeholder: 'Flutter 개발에 대해 무엇이든 물어보세요...',
+      send: '전송',
+      inputHelp: 'Enter를 눌러 전송, Shift+Enter로 줄바꿈',
+      errorMessage: '죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.',
+      apiConfigError: 'API URL이 설정되지 않았습니다. 관리자에게 문의하세요.',
+    },
+  };
+
+  const currentLang = t[language] || t.en;
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -61,7 +85,13 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
 
     try {
       // Call generateAnswer API (real AI)
-      const response = await fetch('https://generateanswer-yt3kigee5a-uc.a.run.app', {
+      const apiUrl = process.env.REACT_APP_API_BASE_URL;
+
+      if (!apiUrl) {
+        throw new Error(currentLang.apiConfigError);
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,7 +138,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: currentLang.errorMessage,
         error: true,
         timestamp: new Date()
       };
@@ -137,7 +167,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
       <header className="chat-header">
         {showBackButton && (
           <button className="back-btn" onClick={onGoHome}>
-            ← Back to Home
+            {currentLang.backButton}
           </button>
         )}
         <div className="chat-title">
@@ -161,7 +191,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
               <span></span>
               <span></span>
             </div>
-            <span>Flutter AI is thinking...</span>
+            <span>{currentLang.thinking}</span>
           </div>
         )}
 
@@ -174,7 +204,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Ask me anything about Flutter development..."
+            placeholder={currentLang.placeholder}
             rows={1}
             disabled={isLoading}
           />
@@ -183,12 +213,12 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
             disabled={!inputValue.trim() || isLoading}
             className="send-btn"
           >
-            Send
+            {currentLang.send}
           </button>
         </div>
 
         <div className="input-help">
-          <span>Press Enter to send, Shift+Enter for new line</span>
+          <span>{currentLang.inputHelp}</span>
         </div>
       </div>
     </div>

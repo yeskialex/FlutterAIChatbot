@@ -130,7 +130,9 @@ const Sidebar = ({
                         className="delete-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteConversation(conversation.id);
+                          if (window.confirm('Are you sure you want to delete this conversation? This action cannot be undone.')) {
+                            onDeleteConversation(conversation.id);
+                          }
                         }}
                         title="Delete conversation"
                       >

@@ -86,6 +86,107 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Code block styles */
+.message-text pre {
+  margin: 8px 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.message-text pre > div {
+  margin: 0 !important;
+  border-radius: 8px !important;
+}
+
+.copy-code-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+  z-index: 1;
+}
+
+.copy-code-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.copy-code-btn:active {
+  transform: scale(0.95);
+}
+
+/* Markdown styles */
+.message-text h1,
+.message-text h2,
+.message-text h3 {
+  margin: 12px 0 8px 0;
+  font-weight: 600;
+}
+
+.message-text h1 {
+  font-size: 1.5em;
+}
+
+.message-text h2 {
+  font-size: 1.3em;
+}
+
+.message-text h3 {
+  font-size: 1.1em;
+}
+
+.message-text ul,
+.message-text ol {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.message-text li {
+  margin: 4px 0;
+}
+
+.message-text blockquote {
+  border-left: 3px solid #ddd;
+  padding-left: 12px;
+  margin: 8px 0;
+  color: #666;
+  font-style: italic;
+}
+
+.message-text table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+
+.message-text th,
+.message-text td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.message-text th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.message-text a {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+.message-text a:hover {
+  color: #1565c0;
+}
+
 .confidence-indicator {
   display: flex;
   align-items: center;

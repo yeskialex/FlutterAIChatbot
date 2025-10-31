@@ -100,37 +100,39 @@ const HomePage = ({ onStartConversation, user, onSignOut, onTestConversations, o
         </div>
       </div>
 
-      {/* Temporary debug buttons */}
-      <div style={{ padding: '20px', borderTop: '1px solid #333', marginTop: '20px' }}>
-        <h3 style={{ color: 'white', marginBottom: '10px' }}>Debug Tools:</h3>
-        <button
-          onClick={onTestConversations}
-          style={{
-            padding: '10px 20px',
-            marginRight: '10px',
-            backgroundColor: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          Create Test Conversations
-        </button>
-        <button
-          onClick={onTestRetrieval}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#764ba2',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          Test Conversation Retrieval
-        </button>
-      </div>
+      {/* Debug tools - only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{ padding: '20px', borderTop: '1px solid #333', marginTop: '20px' }}>
+          <h3 style={{ color: 'white', marginBottom: '10px' }}>Debug Tools:</h3>
+          <button
+            onClick={onTestConversations}
+            style={{
+              padding: '10px 20px',
+              marginRight: '10px',
+              backgroundColor: '#667eea',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Create Test Conversations
+          </button>
+          <button
+            onClick={onTestRetrieval}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#764ba2',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Test Conversation Retrieval
+          </button>
+        </div>
+      )}
     </div>
   );
 };
