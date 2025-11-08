@@ -24,6 +24,13 @@
   gap: 12px;
 }
 
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
 .toggle-btn {
   background: transparent;
   border: 1px solid #2d2d2d;
@@ -33,10 +40,27 @@
   cursor: pointer;
   font-size: 14px;
   transition: all 0.2s ease;
-  align-self: flex-start;
 }
 
 .toggle-btn:hover {
+  background: #2d2d2d;
+}
+
+.home-btn {
+  background: transparent;
+  border: 1px solid #2d2d2d;
+  color: #fff;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 18px;
+}
+
+.home-btn:hover {
   background: #2d2d2d;
 }
 
@@ -60,6 +84,53 @@
 
 .new-chat-btn .icon {
   font-size: 16px;
+}
+
+/* Search container */
+.search-container {
+  padding: 8px 16px 16px;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  background: #2d2d2d;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 10px 36px 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input::placeholder {
+  color: #666;
+}
+
+.search-input:focus {
+  border-color: #667eea;
+  background: #333;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 16px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  color: #fff;
+  background: #444;
 }
 
 .conversations-list {

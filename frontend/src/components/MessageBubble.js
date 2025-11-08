@@ -5,7 +5,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import './MessageBubble.css';
 
-const MessageBubble = ({ message, language }) => {
+const MessageBubble = ({ message, language, onRegenerate }) => {
   const [showSources, setShowSources] = useState(false);
 
   const formatTimestamp = (timestamp) => {
@@ -157,6 +157,16 @@ const MessageBubble = ({ message, language }) => {
               </div>
             )}
           </div>
+        )}
+
+        {!message.error && onRegenerate && (
+          <button
+            className="regenerate-btn"
+            onClick={() => onRegenerate(message.id)}
+            title={language === 'ko' ? '다시 생성' : 'Regenerate'}
+          >
+            🔄 {language === 'ko' ? '다시 생성' : 'Regenerate'}
+          </button>
         )}
 
         <div className="message-time">{formatTimestamp(message.timestamp)}</div>

@@ -8,9 +8,11 @@ const Sidebar = ({
   onSelectConversation,
   currentConversationId,
   conversations,
-  onDeleteConversation
+  onDeleteConversation,
+  onGoHome
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
@@ -58,6 +60,28 @@ const Sidebar = ({
     return title.substring(0, maxLength) + '...';
   };
 
+  const filterConversations = (conversations, query) => {
+    if (!query.trim()) return conversations;
+
+    const lowerQuery = query.toLowerCase();
+
+    return conversations.filter(conv => {
+      // Search in conversation title
+      if (conv.title && conv.title.toLowerCase().includes(lowerQuery)) {
+        return true;
+      }
+
+      // Search in message contents
+      if (conv.messages && conv.messages.length > 0) {
+        return conv.messages.some(msg =>
+          msg.content && msg.content.toLowerCase().includes(lowerQuery)
+        );
+      }
+
+      return false;
+    });
+  };
+
   const groupConversationsByDate = (conversations) => {
     const groups = {};
 
@@ -74,7 +98,8 @@ const Sidebar = ({
     return groups;
   };
 
-  const groupedConversations = groupConversationsByDate(conversations);
+  const filteredConversations = filterConversations(conversations, searchQuery);
+  const groupedConversations = groupConversationsByDate(filteredConversations);
 
   // Clean up: Remove debug logging
   // console.log('Sidebar - conversations prop:', conversations);
@@ -82,27 +107,61 @@ const Sidebar = ({
   return (
     <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
-        <button className="toggle-btn" onClick={toggleSidebar}>
-          {isCollapsed ? '→' : '←'}
-        </button>
+        <div className="header-top">
+          <button className="toggle-btn" onClick={toggleSidebar}>
+            {isCollapsed ? '→' : '←'}
+          </button>
+
+          {!isCollapsed && (
+            <button className="home-btn" onClick={onGoHome} title="Home">
+              🏠
+            </button>
+          )}
+        </div>
 
         {!isCollapsed && (
-          <>
-            <button className="new-chat-btn" onClick={onNewChat}>
-              <span className="icon">💬</span>
-              New Chat
-            </button>
-          </>
+          <button className="new-chat-btn" onClick={onNewChat}>
+            <span className="icon">💬</span>
+            New Chat
+          </button>
         )}
       </div>
 
       {!isCollapsed && (
         <>
+          <div className="search-container">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="🔍 Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                className="clear-search-btn"
+                onClick={() => setSearchQuery('')}
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
           <div className="conversations-list">
             {Object.keys(groupedConversations).length === 0 ? (
               <div className="no-conversations">
-                <p>No conversations yet</p>
-                <p>Start a new chat to begin!</p>
+                {searchQuery ? (
+                  <>
+                    <p>No results found</p>
+                    <p>Try a different search term</p>
+                  </>
+                ) : (
+                  <>
+                    <p>No conversations yet</p>
+                    <p>Start a new chat to begin!</p>
+                  </>
+                )}
               </div>
             ) : (
               Object.entries(groupedConversations).map(([dateGroup, convs]) => (
