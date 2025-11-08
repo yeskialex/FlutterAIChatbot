@@ -318,6 +318,38 @@
   text-align: left;
 }
 
+/* Regenerate button */
+.regenerate-btn {
+  background: #f0f7ff;
+  border: 1px solid #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+
+.regenerate-btn:hover {
+  background: #e3f2fd;
+  border-color: #bbdefb;
+  transform: translateY(-1px);
+}
+
+.regenerate-btn:active {
+  transform: translateY(0);
+}
+
+.regenerate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 768px) {
   .message-bubble {
     max-width: 90%;

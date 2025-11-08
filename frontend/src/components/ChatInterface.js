@@ -10,6 +10,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState('en');
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Localized messages
   const t = {
@@ -39,6 +40,23 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Auto-resize textarea based on content
+  const adjustTextareaHeight = () => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      const newHeight = textarea.scrollHeight;
+      textarea.style.height = `${newHeight}px`;
+
+      // Show scrollbar only when content exceeds max-height (120px)
+      if (newHeight > 120) {
+        textarea.style.overflowY = 'auto';
+      } else {
+        textarea.style.overflowY = 'hidden';
+      }
+    }
+  };
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -51,6 +69,11 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
       setMessages([]);
     }
   }, [conversation]);
+
+  useEffect(() => {
+    // Adjust textarea height when input value changes
+    adjustTextareaHeight();
+  }, [inputValue]);
 
   useEffect(() => {
     // Send initial prompt if this is a new conversation
@@ -80,6 +103,11 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
 
     if (!isInitial) {
       setInputValue('');
+      // Reset textarea height and hide scrollbar
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.overflowY = 'hidden';
+      }
     }
     setIsLoading(true);
 
@@ -155,6 +183,97 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
     setIsLoading(false);
   };
 
+  const handleRegenerate = async (messageId) => {
+    // Find the bot message to regenerate
+    const messageIndex = messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) return;
+
+    // Find the previous user message
+    let userMessage = null;
+    for (let i = messageIndex - 1; i >= 0; i--) {
+      if (messages[i].type === 'user') {
+        userMessage = messages[i];
+        break;
+      }
+    }
+
+    if (!userMessage) return;
+
+    setIsLoading(true);
+
+    try {
+      const apiUrl = process.env.REACT_APP_API_BASE_URL;
+
+      if (!apiUrl) {
+        throw new Error(currentLang.apiConfigError);
+      }
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: userMessage.content,
+          conversationId: conversation.id,
+          language: language
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+
+      const newBotMessage = {
+        id: Date.now(),
+        type: 'bot',
+        content: data.answer,
+        sources: data.sources,
+        confidence: data.confidence,
+        timestamp: new Date()
+      };
+
+      // Replace the old message with the new one
+      const updatedMessages = [...messages];
+      updatedMessages[messageIndex] = newBotMessage;
+      setMessages(updatedMessages);
+
+      // Update Firestore
+      if (conversation?.id) {
+        await addMessageToConversation(conversation.id, newBotMessage);
+      }
+
+      // Update conversation
+      onUpdateConversation({
+        ...conversation,
+        messages: updatedMessages
+      });
+
+    } catch (error) {
+      console.error('Error regenerating message:', error);
+
+      const errorMessage = {
+        id: Date.now(),
+        type: 'bot',
+        content: currentLang.errorMessage,
+        error: true,
+        timestamp: new Date()
+      };
+
+      const updatedMessages = [...messages];
+      updatedMessages[messageIndex] = errorMessage;
+      setMessages(updatedMessages);
+
+      if (conversation?.id) {
+        await addMessageToConversation(conversation.id, errorMessage);
+      }
+    }
+
+    setIsLoading(false);
+  };
+
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -181,7 +300,12 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
 
       <div className="chat-messages">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} language={language} />
+          <MessageBubble
+            key={message.id}
+            message={message}
+            language={language}
+            onRegenerate={handleRegenerate}
+          />
         ))}
 
         {isLoading && (
@@ -201,6 +325,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
       <div className="chat-input-container">
         <div className="chat-input">
           <textarea
+            ref={textareaRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}

@@ -185,6 +185,7 @@ const ChatLayout = ({ user, onSignOut }) => {
         currentConversationId={currentConversation?.id}
         conversations={conversations}
         onDeleteConversation={handleDeleteConversation}
+        onGoHome={handleGoHome}
       />
 
       <div className="main-content">
