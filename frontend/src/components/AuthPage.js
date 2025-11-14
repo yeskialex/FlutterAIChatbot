@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './AuthPage.css';
 import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '../firebase/authService';
+import { HiCode, HiMail, HiLockClosed, HiUser } from 'react-icons/hi';
+import { FcGoogle } from 'react-icons/fc';
 
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -118,7 +120,10 @@ const AuthPage = () => {
     <div className="auth-page">
       <div className="auth-container">
         <div className="auth-header">
-          <h1>🚀 Flutter AI Chatbot</h1>
+          <h1>
+            <HiCode className="header-icon" />
+            Flutter AI Chatbot
+          </h1>
           <h2>{isSignUp ? 'Create Account' : 'Welcome Back'}</h2>
           <p>{isSignUp ? 'Join the Flutter learning community' : 'Sign in to continue your Flutter journey'}</p>
         </div>
@@ -127,56 +132,68 @@ const AuthPage = () => {
           {isSignUp && (
             <div className="form-group">
               <label htmlFor="name">Full Name</label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                placeholder="Enter your full name"
-                required={isSignUp}
-              />
+              <div className="input-wrapper">
+                <HiUser className="input-icon" />
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Enter your full name"
+                  required={isSignUp}
+                />
+              </div>
             </div>
           )}
 
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="Enter your email"
-              required
-            />
+            <div className="input-wrapper">
+              <HiMail className="input-icon" />
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Enter your email"
+                required
+              />
+            </div>
           </div>
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="Enter your password"
-              required
-            />
+            <div className="input-wrapper">
+              <HiLockClosed className="input-icon" />
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
           </div>
 
           {isSignUp && (
             <div className="form-group">
               <label htmlFor="confirmPassword">Confirm Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                placeholder="Confirm your password"
-                required={isSignUp}
-              />
+              <div className="input-wrapper">
+                <HiLockClosed className="input-icon" />
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  placeholder="Confirm your password"
+                  required={isSignUp}
+                />
+              </div>
             </div>
           )}
 
@@ -198,8 +215,9 @@ const AuthPage = () => {
             type="button"
             className="auth-btn google"
             onClick={handleGoogleSignIn}
+            disabled={loading}
           >
-            <span className="google-icon">🔍</span>
+            <FcGoogle className="google-icon" />
             Continue with Google
           </button>
         </form>

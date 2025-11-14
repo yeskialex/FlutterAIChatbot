@@ -4,6 +4,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import './MessageBubble.css';
+import { HiUser, HiLightningBolt, HiRefresh } from 'react-icons/hi';
 
 const MessageBubble = ({ message, language, onRegenerate }) => {
   const [showSources, setShowSources] = useState(false);
@@ -82,7 +83,7 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
           <div className="message-time">{formatTimestamp(message.timestamp)}</div>
         </div>
         <div className="message-avatar user-avatar">
-          👤
+          <HiUser />
         </div>
       </div>
     );
@@ -91,7 +92,7 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
   return (
     <div className="message-bubble bot-message">
       <div className="message-avatar bot-avatar">
-        🤖
+        <HiLightningBolt />
       </div>
       <div className="message-content">
         <div className={`message-text ${message.error ? 'error-message' : ''}`}>
@@ -165,7 +166,8 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
             onClick={() => onRegenerate(message.id)}
             title={language === 'ko' ? '다시 생성' : 'Regenerate'}
           >
-            🔄 {language === 'ko' ? '다시 생성' : 'Regenerate'}
+            <HiRefresh />
+            {language === 'ko' ? '다시 생성' : 'Regenerate'}
           </button>
         )}
 

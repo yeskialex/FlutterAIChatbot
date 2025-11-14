@@ -1,5 +1,6 @@
 import React from 'react';
 import './HomePage.css';
+import { HiCode, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 
 const HomePage = ({ onStartConversation, user, onSignOut, onTestConversations, onTestRetrieval }) => {
   const weeklyFlows = [
@@ -45,7 +46,10 @@ const HomePage = ({ onStartConversation, user, onSignOut, onTestConversations, o
           </button>
         </div>
 
-        <h1>🚀 Flutter AI Chatbot</h1>
+        <h1>
+          <HiCode className="header-icon" />
+          Flutter AI Chatbot
+        </h1>
         <p>Your intelligent companion for Flutter development</p>
 
         <button
@@ -56,12 +60,13 @@ const HomePage = ({ onStartConversation, user, onSignOut, onTestConversations, o
             initialPrompt: null // No premade prompt - blank chat
           })}
         >
-          💬 Start New Chat
+          <HiSparkles />
+          Start New Chat
         </button>
       </header>
 
       <div className="weekly-flows">
-        <h2>📚 Weekly Learning Flow</h2>
+        <h2>Weekly Learning Flow</h2>
         <div className="flow-cards">
           {weeklyFlows.map((flow) => (
             <div
@@ -82,7 +87,10 @@ const HomePage = ({ onStartConversation, user, onSignOut, onTestConversations, o
       </div>
 
       <div className="quick-prompts">
-        <h2>⚡ Quick Start Prompts</h2>
+        <h2>
+          <HiLightningBolt className="section-icon" />
+          Quick Start Prompts
+        </h2>
         <div className="prompt-buttons">
           {quickPrompts.map((prompt, index) => (
             <button

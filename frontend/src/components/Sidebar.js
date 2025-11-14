@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 import './Sidebar.css';
+import {
+  HiChevronLeft,
+  HiChevronRight,
+  HiHome,
+  HiPlus,
+  HiSearch,
+  HiX,
+  HiTrash,
+  HiLogout
+} from 'react-icons/hi';
 
 const Sidebar = ({
   user,
@@ -109,19 +119,19 @@ const Sidebar = ({
       <div className="sidebar-header">
         <div className="header-top">
           <button className="toggle-btn" onClick={toggleSidebar}>
-            {isCollapsed ? '→' : '←'}
+            {isCollapsed ? <HiChevronRight /> : <HiChevronLeft />}
           </button>
 
           {!isCollapsed && (
             <button className="home-btn" onClick={onGoHome} title="Home">
-              🏠
+              <HiHome />
             </button>
           )}
         </div>
 
         {!isCollapsed && (
           <button className="new-chat-btn" onClick={onNewChat}>
-            <span className="icon">💬</span>
+            <HiPlus className="icon" />
             New Chat
           </button>
         )}
@@ -130,10 +140,11 @@ const Sidebar = ({
       {!isCollapsed && (
         <>
           <div className="search-container">
+            <HiSearch className="search-icon" />
             <input
               type="text"
               className="search-input"
-              placeholder="🔍 Search conversations..."
+              placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -143,7 +154,7 @@ const Sidebar = ({
                 onClick={() => setSearchQuery('')}
                 title="Clear search"
               >
-                ✕
+                <HiX />
               </button>
             )}
           </div>
@@ -195,7 +206,7 @@ const Sidebar = ({
                         }}
                         title="Delete conversation"
                       >
-                        🗑️
+                        <HiTrash />
                       </button>
                     </div>
                   ))}
@@ -215,6 +226,7 @@ const Sidebar = ({
               </div>
             </div>
             <button className="sign-out-btn" onClick={onSignOut}>
+              <HiLogout />
               Sign Out
             </button>
           </div>
