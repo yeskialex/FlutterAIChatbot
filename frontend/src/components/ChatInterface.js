@@ -3,6 +3,7 @@ import './ChatInterface.css';
 import MessageBubble from './MessageBubble';
 import LanguageToggle from './LanguageToggle';
 import { addMessageToConversation } from '../firebase/chatService';
+import { HiChevronLeft, HiPaperAirplane } from 'react-icons/hi';
 
 const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, showBackButton = true }) => {
   const [messages, setMessages] = useState([]);
@@ -15,7 +16,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
   // Localized messages
   const t = {
     en: {
-      backButton: '← Back to Home',
+      backButton: 'Back to Home',
       thinking: 'Flutter AI is thinking...',
       placeholder: 'Ask me anything about Flutter development...',
       send: 'Send',
@@ -24,7 +25,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
       apiConfigError: 'API URL is not configured. Please contact support.',
     },
     ko: {
-      backButton: '← 홈으로 돌아가기',
+      backButton: '홈으로 돌아가기',
       thinking: 'Flutter AI가 생각하고 있습니다...',
       placeholder: 'Flutter 개발에 대해 무엇이든 물어보세요...',
       send: '전송',
@@ -286,6 +287,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
       <header className="chat-header">
         {showBackButton && (
           <button className="back-btn" onClick={onGoHome}>
+            <HiChevronLeft />
             {currentLang.backButton}
           </button>
         )}
@@ -338,7 +340,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
             disabled={!inputValue.trim() || isLoading}
             className="send-btn"
           >
-            {currentLang.send}
+            <HiPaperAirplane />
           </button>
         </div>
 

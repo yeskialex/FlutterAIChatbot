@@ -1,15 +1,27 @@
 .home-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-xl);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background-color: black;
+  background-color: var(--color-dark-bg);
   min-height: 100vh;
 }
 
 .home-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: var(--spacing-3xl);
+}
+
+.header-icon {
+  display: inline-block;
+  margin-right: var(--spacing-md);
+  vertical-align: middle;
+}
+
+.section-icon {
+  display: inline-block;
+  margin-right: var(--spacing-sm);
+  vertical-align: middle;
 }
 
 .user-bar {
@@ -70,25 +82,23 @@
 }
 
 .new-chat-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--color-white);
+  color: var(--color-dark-bg);
   border: none;
-  padding: 16px 32px;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  transition: all var(--transition-base);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .new-chat-btn:hover {
+  background: var(--color-gray-200);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
 }
 
 .weekly-flows {
