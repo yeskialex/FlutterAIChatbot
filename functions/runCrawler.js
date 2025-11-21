@@ -103,116 +103,89 @@ async function updateCrawlStatus(url, lastModified, success) {
 }
 
 /**
- * Scrape content from a single documentation page
+ * Scrape content from a single documentation page using Cheerio
  * @param {string} url - URL to scrape
- * @param {Object} browser - Shared browser instance
  * @return {Promise<Object>} Scraped content data
  */
-async function scrapePage(url, browser) {
-  let page;
-
+async function scrapePage(url) {
   try {
     console.log(`Scraping: ${url}`);
 
-    const page = await browser.newPage();
-
-    // Set user agent and viewport
-    await page.setUserAgent("Flutter-Chatbot-Crawler/1.0");
-    await page.setViewport({width: 1200, height: 800});
-
-    // Navigate to page with timeout
-    await page.goto(url, {
-      waitUntil: "networkidle2",
+    // Fetch HTML content
+    const response = await axios.get(url, {
       timeout: 30000,
+      headers: {
+        "User-Agent": "Flutter-Chatbot-Crawler/1.0",
+      },
     });
 
-    // Wait for main content to load
-    await page.waitForSelector("main, .content, article", {timeout: 10000});
+    const $ = cheerio.load(response.data);
 
-    // Extract content using page.evaluate
-    const pageData = await page.evaluate(() => {
-      // Get page title
-      const title = document.querySelector("h1")?.textContent?.trim() ||
-                   document.title?.trim() ||
-                   "Flutter Documentation";
+    // Get page title
+    const title = $("h1").first().text().trim() ||
+                 $("title").text().trim() ||
+                 "Flutter Documentation";
 
-      // Get main content (try different selectors)
-      const contentSelectors = [
-        "main .content",
-        "main",
-        ".content",
-        "article",
-        ".markdown-body",
-        "#content",
-      ];
+    // Get main content (try different selectors)
+    const contentSelectors = [
+      "main .content",
+      "main",
+      ".content",
+      "article",
+      ".markdown-body",
+      "#content",
+    ];
 
-      let mainContent = "";
-      for (const selector of contentSelectors) {
-        const element = document.querySelector(selector);
-        if (element) {
-          // Remove navigation, sidebar, and other non-content elements
-          const clonedElement = element.cloneNode(true);
+    let mainContent = "";
+    for (const selector of contentSelectors) {
+      const element = $(selector);
+      if (element.length > 0) {
+        // Remove unwanted elements
+        element.find("nav, .nav, .navigation").remove();
+        element.find(".sidebar, .toc, .table-of-contents").remove();
+        element.find(".breadcrumbs, .breadcrumb").remove();
+        element.find("footer, .footer").remove();
+        element.find(".social-share, .share-buttons").remove();
+        element.find("script, style, noscript").remove();
 
-          // Remove unwanted elements
-          const unwantedSelectors = [
-            "nav", ".nav", ".navigation",
-            ".sidebar", ".toc", ".table-of-contents",
-            ".breadcrumbs", ".breadcrumb",
-            "footer", ".footer",
-            ".social-share", ".share-buttons",
-            "script", "style", "noscript",
-          ];
-
-          unwantedSelectors.forEach((sel) => {
-            clonedElement.querySelectorAll(sel).forEach((el) => el.remove());
-          });
-
-          mainContent = clonedElement.textContent || clonedElement.innerText || "";
-          break;
-        }
+        mainContent = element.text().trim();
+        break;
       }
+    }
 
-      // Get code examples
-      const codeBlocks = [];
-      document.querySelectorAll("pre code, .highlight code, .code-block").forEach((block, index) => {
-        const code = block.textContent?.trim();
-        if (code && code.length > 10) {
-          codeBlocks.push({
-            id: `code_${index}`,
-            content: code,
-            language: block.className?.match(/language-(\w+)/)?.[1] || "dart",
-          });
-        }
-      });
-
-      return {
-        title: title,
-        content: mainContent.trim(),
-        codeBlocks: codeBlocks,
-        wordCount: mainContent.trim().split(/\s+/).length,
-      };
+    // Get code examples
+    const codeBlocks = [];
+    $("pre code, .highlight code, .code-block").each((index, element) => {
+      const code = $(element).text().trim();
+      if (code && code.length > 10) {
+        const className = $(element).attr("class") || "";
+        const languageMatch = className.match(/language-(\w+)/);
+        codeBlocks.push({
+          id: `code_${index}`,
+          content: code,
+          language: languageMatch ? languageMatch[1] : "dart",
+        });
+      }
     });
 
     // Clean and validate content
-    if (!pageData.content || pageData.content.length < 100) {
+    if (!mainContent || mainContent.length < 100) {
       throw new Error("Insufficient content extracted");
     }
 
+    const wordCount = mainContent.split(/\s+/).length;
+
     return {
       url: url,
-      title: pageData.title,
-      content: pageData.content,
-      codeBlocks: pageData.codeBlocks,
-      wordCount: pageData.wordCount,
+      title: title,
+      content: mainContent,
+      codeBlocks: codeBlocks,
+      wordCount: wordCount,
       scrapedAt: new Date().toISOString(),
     };
   } catch (error) {
     console.error(`Error scraping ${url}:`, error.message);
     throw error;
-  } finally {
-    if (page) {
-      await page.close();
-    }
   }
 }
 
@@ -324,6 +297,60 @@ async function processDocument(pageData) {
 }
 
 /**
+ * Get or create crawl progress tracker
+ * @return {Promise<Object>} Progress data
+ */
+async function getCrawlProgress() {
+  try {
+    const db = admin.firestore();
+    const progressDoc = await db.collection("crawler_metadata").doc("progress").get();
+
+    if (progressDoc.exists) {
+      return progressDoc.data();
+    }
+
+    // Initialize progress if not exists
+    const initialProgress = {
+      lastProcessedIndex: -1,
+      totalUrls: 0,
+      completedUrls: 0,
+      failedUrls: 0,
+      lastRunAt: null,
+      isComplete: false,
+    };
+
+    await db.collection("crawler_metadata").doc("progress").set(initialProgress);
+    return initialProgress;
+  } catch (error) {
+    console.error("Error getting crawl progress:", error);
+    return {
+      lastProcessedIndex: -1,
+      totalUrls: 0,
+      completedUrls: 0,
+      failedUrls: 0,
+      lastRunAt: null,
+      isComplete: false,
+    };
+  }
+}
+
+/**
+ * Update crawl progress
+ * @param {Object} updates - Progress updates
+ */
+async function updateCrawlProgress(updates) {
+  try {
+    const db = admin.firestore();
+    await db.collection("crawler_metadata").doc("progress").update({
+      ...updates,
+      lastRunAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch (error) {
+    console.error("Error updating crawl progress:", error);
+  }
+}
+
+/**
  * Cloud Function to run the crawler
  */
 exports.runCrawler = onRequest({
@@ -332,26 +359,58 @@ exports.runCrawler = onRequest({
   memory: "4GiB",
 }, async (req, res) => {
   try {
-    const {testMode = true, maxPages = 1} = req.body || {};
+    const {
+      testMode = false,
+      batchSize = 100,
+      resetProgress = false,
+    } = req.body || {};
 
-    console.log(`Starting crawler (testMode: ${testMode}, maxPages: ${maxPages})`);
+    console.log(`Starting crawler (testMode: ${testMode}, batchSize: ${batchSize})`);
+
+    // Reset progress if requested
+    if (resetProgress) {
+      console.log("Resetting crawl progress...");
+      await updateCrawlProgress({
+        lastProcessedIndex: -1,
+        completedUrls: 0,
+        failedUrls: 0,
+        isComplete: false,
+      });
+    }
+
+    // Get current progress
+    const progress = await getCrawlProgress();
+    console.log(`Current progress: ${progress.completedUrls}/${progress.totalUrls} URLs completed`);
+
+    // Check if already complete
+    if (progress.isComplete && !resetProgress) {
+      console.log("Crawl already complete. Use resetProgress: true to start over.");
+      return res.json({
+        success: true,
+        message: "Crawl already complete",
+        progress: progress,
+      });
+    }
 
     // Fetch sitemap URLs
     const sitemapUrls = await fetchSitemap();
+    const totalUrls = sitemapUrls.length;
 
-    // Filter URLs for testing (prioritize main sections)
-    const priorityUrls = sitemapUrls.filter((item) =>
-      item.url.includes("/development/") ||
-      item.url.includes("/cookbook/") ||
-      item.url.includes("/ui/") ||
-      item.url.includes("/testing/"),
-    );
+    // Update total URLs if changed
+    if (progress.totalUrls !== totalUrls) {
+      await updateCrawlProgress({totalUrls: totalUrls});
+    }
 
+    // Calculate batch range
+    const startIndex = progress.lastProcessedIndex + 1;
+    const endIndex = Math.min(startIndex + batchSize, totalUrls);
+
+    // For test mode, process smaller batch
     const urlsToProcess = testMode ?
-      priorityUrls.slice(0, maxPages) :
-      sitemapUrls;
+      sitemapUrls.slice(0, Math.min(5, totalUrls)) :
+      sitemapUrls.slice(startIndex, endIndex);
 
-    console.log(`Processing ${urlsToProcess.length} URLs`);
+    console.log(`Processing URLs ${startIndex + 1} to ${endIndex} of ${totalUrls}`);
 
     const results = {
       processed: 0,
@@ -359,10 +418,14 @@ exports.runCrawler = onRequest({
       skipped: 0,
       totalChunks: 0,
       urls: [],
+      batchStartIndex: startIndex,
+      batchEndIndex: endIndex,
     };
 
     // Process each URL
-    for (const urlData of urlsToProcess) {
+    for (let i = 0; i < urlsToProcess.length; i++) {
+      const urlData = urlsToProcess[i];
+      const currentIndex = testMode ? i : startIndex + i;
       try {
         // Check if page needs refresh based on last modified date
         const needsUpdate = await needsRefresh(urlData.url, urlData.lastModified);
@@ -424,6 +487,14 @@ exports.runCrawler = onRequest({
 
         console.log(`✓ Processed: ${pageData.title} (${chunks.length} chunks)`);
 
+        // Update progress after each successful page (if not in test mode)
+        if (!testMode) {
+          await updateCrawlProgress({
+            lastProcessedIndex: currentIndex,
+            completedUrls: progress.completedUrls + results.processed,
+          });
+        }
+
         // Rate limiting - wait between requests
         await new Promise((resolve) => setTimeout(resolve, 2000));
       } catch (error) {
@@ -439,13 +510,38 @@ exports.runCrawler = onRequest({
           error: error.message,
           lastModified: urlData.lastModified,
         });
+
+        // Update progress even for failed pages (if not in test mode)
+        if (!testMode) {
+          await updateCrawlProgress({
+            lastProcessedIndex: currentIndex,
+            failedUrls: progress.failedUrls + results.failed,
+          });
+        }
       }
+    }
+
+    // Mark as complete if we've processed all URLs
+    const finalProgress = await getCrawlProgress();
+    const isComplete = !testMode && (finalProgress.lastProcessedIndex >= totalUrls - 1);
+
+    if (isComplete) {
+      console.log("🎉 Crawl complete! All pages processed.");
+      await updateCrawlProgress({isComplete: true});
     }
 
     res.json({
       success: true,
-      message: "Crawler completed",
+      message: isComplete ? "Crawler completed - all pages processed" : "Batch completed",
       results: results,
+      progress: {
+        completed: finalProgress.completedUrls + results.processed,
+        failed: finalProgress.failedUrls + results.failed,
+        total: totalUrls,
+        percentage: Math.round(((finalProgress.completedUrls + results.processed) / totalUrls) * 100),
+        isComplete: isComplete,
+        nextBatchStart: isComplete ? null : finalProgress.lastProcessedIndex + 1,
+      },
       testMode: testMode,
     });
   } catch (error) {
