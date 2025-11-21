@@ -4,7 +4,7 @@ module.exports = {
     node: true,
   },
   parserOptions: {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
   },
   extends: [
     "eslint:recommended",
@@ -14,6 +14,9 @@ module.exports = {
     "no-restricted-globals": ["error", "name", "length"],
     "prefer-arrow-callback": "error",
     "quotes": ["error", "double", {"allowTemplateLiterals": true}],
+    "max-len": ["error", {"code": 120, "ignoreStrings": true, "ignoreTemplateLiterals": true}],
+    "require-jsdoc": "off",
+    "valid-jsdoc": "off",
   },
   overrides: [
     {
@@ -22,6 +25,12 @@ module.exports = {
         mocha: true,
       },
       rules: {},
+    },
+    {
+      files: ["runCrawler.js"],
+      globals: {
+        document: "readonly",
+      },
     },
   ],
   globals: {},

@@ -1,19 +1,19 @@
-const { onRequest } = require("firebase-functions/https");
-const admin = require('firebase-admin');
-const { findSimilarDocuments } = require('./rag');
-const { generateAnswerFromContext } = require('./llm');
+const {onRequest} = require("firebase-functions/https");
+const admin = require("firebase-admin");
+const {findSimilarDocuments} = require("./rag");
+const {generateAnswerFromContext} = require("./llm");
 
 /**
  * Generate AI-powered answers using RAG
  * HTTP endpoint for the React frontend
  */
-exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
+exports.generateAnswer = onRequest({cors: true}, async (req, res) => {
   try {
     // Validate request method
-    if (req.method !== 'POST') {
+    if (req.method !== "POST") {
       return res.status(405).json({
         success: false,
-        error: 'Method not allowed. Use POST.'
+        error: "Method not allowed. Use POST.",
       });
     }
 
@@ -23,21 +23,21 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
       conversationId,
       previousMessages = [],
       linkUrl,
-      filePath
+      filePath,
     } = req.body;
 
     // Validate required fields
-    if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    if (!question || typeof question !== "string" || question.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        error: 'Question is required and must be a non-empty string.'
+        error: "Question is required and must be a non-empty string.",
       });
     }
 
     console.log(`Processing question: "${question}"`);
 
     // Step 1: Find relevant documents using vector search
-    console.log('Step 1: Searching for relevant documents...');
+    console.log("Step 1: Searching for relevant documents...");
     const relevantDocs = await findSimilarDocuments(question, 5);
     console.log(`Found ${relevantDocs.length} relevant documents`);
 
@@ -47,16 +47,16 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
       // TODO: Implement link crawling in Phase 1
       // For now, add a note about the link
       relevantDocs.unshift({
-        id: 'attached_link',
+        id: "attached_link",
         content: `User provided link: ${linkUrl} (link processing will be implemented in Phase 1)`,
         url: linkUrl,
         lastUpdated: new Date().toISOString(),
         similarity: 1.0,
         metadata: {
-          title: 'User Provided Link',
-          section: 'Attachments',
-          type: 'link'
-        }
+          title: "User Provided Link",
+          section: "Attachments",
+          type: "link",
+        },
       });
     }
 
@@ -66,16 +66,16 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
       // TODO: Implement file processing in Phase 2
       // For now, add a note about the file
       relevantDocs.unshift({
-        id: 'attached_file',
+        id: "attached_file",
         content: `User uploaded file: ${filePath} (file processing will be implemented in Phase 2)`,
-        url: 'file://uploaded',
+        url: "file://uploaded",
         lastUpdated: new Date().toISOString(),
         similarity: 1.0,
         metadata: {
-          title: 'User Uploaded File',
-          section: 'Attachments',
-          type: 'file'
-        }
+          title: "User Uploaded File",
+          section: "Attachments",
+          type: "file",
+        },
       });
     }
 
@@ -83,15 +83,15 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
     let contextualQuestion = question;
     if (previousMessages && previousMessages.length > 0) {
       const recentContext = previousMessages
-        .slice(-3) // Last 3 exchanges
-        .map(msg => `User: ${msg.question}\nAssistant: ${msg.answer}`)
-        .join('\n\n');
+          .slice(-3) // Last 3 exchanges
+          .map((msg) => `User: ${msg.question}\nAssistant: ${msg.answer}`)
+          .join("\n\n");
 
       contextualQuestion = `Previous conversation context:\n${recentContext}\n\nCurrent question: ${question}`;
     }
 
     // Step 5: Generate answer using Gemini
-    console.log('Step 5: Generating answer with Gemini...');
+    console.log("Step 5: Generating answer with Gemini...");
     const result = await generateAnswerFromContext(contextualQuestion, relevantDocs);
 
     // Step 6: Save to chat history (if conversationId provided)
@@ -109,12 +109,12 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
         tokenUsage: result.tokenUsage,
         attachments: {
           linkUrl: linkUrl || null,
-          filePath: filePath || null
-        }
+          filePath: filePath || null,
+        },
       };
 
-      await db.collection('chat_history').add(chatEntry);
-      console.log('Chat history saved successfully');
+      await db.collection("chat_history").add(chatEntry);
+      console.log("Chat history saved successfully");
     }
 
     // Step 7: Return response
@@ -129,22 +129,21 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
         hasLinkAttachment: !!linkUrl,
         hasFileAttachment: !!filePath,
         tokenUsage: result.tokenUsage,
-        processedAt: new Date().toISOString()
-      }
+        processedAt: new Date().toISOString(),
+      },
     };
 
     console.log(`Response generated successfully (confidence: ${result.confidence})`);
     res.json(response);
-
   } catch (error) {
-    console.error('Error generating answer:', error);
+    console.error("Error generating answer:", error);
 
     // Return user-friendly error
-    const statusCode = error.code === 'permission-denied' ? 403 : 500;
+    const statusCode = error.code === "permission-denied" ? 403 : 500;
     res.status(statusCode).json({
       success: false,
-      error: 'Failed to generate answer. Please try again.',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: "Failed to generate answer. Please try again.",
+      details: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 });
@@ -152,33 +151,33 @@ exports.generateAnswer = onRequest({ cors: true }, async (req, res) => {
 /**
  * Get chat history for a conversation
  */
-exports.getHistory = onRequest({ cors: true }, async (req, res) => {
+exports.getHistory = onRequest({cors: true}, async (req, res) => {
   try {
-    if (req.method !== 'GET') {
+    if (req.method !== "GET") {
       return res.status(405).json({
         success: false,
-        error: 'Method not allowed. Use GET.'
+        error: "Method not allowed. Use GET.",
       });
     }
 
-    const { conversationId } = req.query;
+    const {conversationId} = req.query;
 
     if (!conversationId) {
       return res.status(400).json({
         success: false,
-        error: 'conversationId is required'
+        error: "conversationId is required",
       });
     }
 
     const db = admin.firestore();
     const historyQuery = await db
-      .collection('chat_history')
-      .where('conversationId', '==', conversationId)
-      .orderBy('timestamp', 'asc')
-      .get();
+        .collection("chat_history")
+        .where("conversationId", "==", conversationId)
+        .orderBy("timestamp", "asc")
+        .get();
 
     const history = [];
-    historyQuery.forEach(doc => {
+    historyQuery.forEach((doc) => {
       const data = doc.data();
       history.push({
         id: doc.id,
@@ -187,7 +186,7 @@ exports.getHistory = onRequest({ cors: true }, async (req, res) => {
         confidence: data.confidence,
         sources: data.sources,
         timestamp: data.timestamp?.toDate?.()?.toISOString?.() || data.timestamp,
-        attachments: data.attachments
+        attachments: data.attachments,
       });
     });
 
@@ -195,14 +194,13 @@ exports.getHistory = onRequest({ cors: true }, async (req, res) => {
       success: true,
       conversationId: conversationId,
       history: history,
-      messageCount: history.length
+      messageCount: history.length,
     });
-
   } catch (error) {
-    console.error('Error fetching chat history:', error);
+    console.error("Error fetching chat history:", error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch chat history'
+      error: "Failed to fetch chat history",
     });
   }
 });

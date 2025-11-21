@@ -1,20 +1,20 @@
-const { VertexAI } = require('@google-cloud/vertexai');
+const {VertexAI} = require("@google-cloud/vertexai");
 
 // Initialize Vertex AI
-const vertex_ai = new VertexAI({
-  project: 'hi-project-flutter-chatbot',
-  location: 'us-central1'
+const vertexAi = new VertexAI({
+  project: "hi-project-flutter-chatbot",
+  location: "us-central1",
 });
 
 // Get the Gemini model
-const model = vertex_ai.getGenerativeModel({
-  model: 'gemini-2.5-flash',
+const model = vertexAi.getGenerativeModel({
+  model: "gemini-2.5-flash",
   generation_config: {
     max_output_tokens: 2048,
     temperature: 0.1,
     top_p: 0.8,
-    top_k: 40
-  }
+    top_k: 40,
+  },
 });
 
 /**
@@ -22,18 +22,18 @@ const model = vertex_ai.getGenerativeModel({
  * @param {string} question - User's question
  * @param {Array} relevantDocs - Array of relevant documents from vector search
  * @param {Object} options - Additional options
- * @returns {Promise<Object>} - Generated answer with metadata
+ * @return {Promise<Object>} - Generated answer with metadata
  */
 async function generateAnswerFromContext(question, relevantDocs, options = {}) {
   try {
     // Prepare context from relevant documents
     const context = relevantDocs.map((doc, index) =>
-      `[Source ${index + 1}] ${doc.metadata?.title || 'Flutter Documentation'}
+      `[Source ${index + 1}] ${doc.metadata?.title || "Flutter Documentation"}
 URL: ${doc.url}
 Content: ${doc.content}
-Last Updated: ${doc.lastUpdated || 'Unknown'}
----`
-    ).join('\n\n');
+Last Updated: ${doc.lastUpdated || "Unknown"}
+---`,
+    ).join("\n\n");
 
     // Construct the prompt
     const prompt = `You are a helpful Flutter development assistant. Answer the user's question based on the provided Flutter documentation context.
@@ -56,18 +56,18 @@ Answer:`;
     // Generate response from Gemini
     const result = await model.generateContent({
       contents: [{
-        role: 'user',
-        parts: [{ text: prompt }]
-      }]
+        role: "user",
+        parts: [{text: prompt}],
+      }],
     });
 
     const response = result.response;
     const answer = response.candidates[0].content.parts[0].text;
 
     // Calculate confidence based on relevance scores
-    const avgSimilarity = relevantDocs.length > 0
-      ? relevantDocs.reduce((sum, doc) => sum + (doc.similarity || 0), 0) / relevantDocs.length
-      : 0;
+    const avgSimilarity = relevantDocs.length > 0 ?
+      relevantDocs.reduce((sum, doc) => sum + (doc.similarity || 0), 0) / relevantDocs.length :
+      0;
 
     // Confidence calculation
     let confidence = 0.5; // baseline
@@ -79,21 +79,20 @@ Answer:`;
     return {
       answer: answer,
       confidence: parseFloat(confidence.toFixed(2)),
-      sources: relevantDocs.map(doc => ({
+      sources: relevantDocs.map((doc) => ({
         url: doc.url,
-        title: doc.metadata?.title || 'Flutter Documentation',
+        title: doc.metadata?.title || "Flutter Documentation",
         lastUpdated: doc.lastUpdated,
-        similarity: doc.similarity
+        similarity: doc.similarity,
       })),
       tokenUsage: {
         promptTokens: prompt.length / 4, // rough estimate
         completionTokens: answer.length / 4, // rough estimate
-        totalTokens: (prompt.length + answer.length) / 4
-      }
+        totalTokens: (prompt.length + answer.length) / 4,
+      },
     };
-
   } catch (error) {
-    console.error('Error generating answer:', error);
+    console.error("Error generating answer:", error);
     throw error;
   }
 }
@@ -102,7 +101,7 @@ Answer:`;
  * Generate conversation title using Gemini
  * @param {string} firstQuestion - First user question
  * @param {string} firstAnswer - First assistant answer
- * @returns {Promise<string>} - Generated title (max 40 chars)
+ * @return {Promise<string>} - Generated title (max 40 chars)
  */
 async function generateConversationTitle(firstQuestion, firstAnswer) {
   try {
@@ -121,20 +120,19 @@ Title:`;
 
     const result = await model.generateContent({
       contents: [{
-        role: 'user',
-        parts: [{ text: prompt }]
-      }]
+        role: "user",
+        parts: [{text: prompt}],
+      }],
     });
 
     const title = result.response.candidates[0].content.parts[0].text.trim();
 
     // Ensure title is within character limit
-    return title.length > 40 ? title.substring(0, 37) + '...' : title;
-
+    return title.length > 40 ? title.substring(0, 37) + "..." : title;
   } catch (error) {
-    console.error('Error generating conversation title:', error);
+    console.error("Error generating conversation title:", error);
     // Fallback title
-    return 'Flutter Development Chat';
+    return "Flutter Development Chat";
   }
 }
 
@@ -142,7 +140,7 @@ Title:`;
  * Summarize long text using Gemini
  * @param {string} text - Text to summarize
  * @param {number} maxLength - Maximum length of summary
- * @returns {Promise<string>} - Summarized text
+ * @return {Promise<string>} - Summarized text
  */
 async function summarizeText(text, maxLength = 500) {
   try {
@@ -154,24 +152,23 @@ Summary:`;
 
     const result = await model.generateContent({
       contents: [{
-        role: 'user',
-        parts: [{ text: prompt }]
-      }]
+        role: "user",
+        parts: [{text: prompt}],
+      }],
     });
 
     const summary = result.response.candidates[0].content.parts[0].text.trim();
-    return summary.length > maxLength ? summary.substring(0, maxLength - 3) + '...' : summary;
-
+    return summary.length > maxLength ? summary.substring(0, maxLength - 3) + "..." : summary;
   } catch (error) {
-    console.error('Error summarizing text:', error);
-    return text.substring(0, maxLength - 3) + '...';
+    console.error("Error summarizing text:", error);
+    return text.substring(0, maxLength - 3) + "...";
   }
 }
 
 /**
  * Classify content type using Gemini
  * @param {string} content - Content to classify
- * @returns {Promise<string>} - Content type (tutorial, api, guide, etc.)
+ * @return {Promise<string>} - Content type (tutorial, api, guide, etc.)
  */
 async function classifyContent(content) {
   try {
@@ -188,20 +185,19 @@ Category:`;
 
     const result = await model.generateContent({
       contents: [{
-        role: 'user',
-        parts: [{ text: prompt }]
-      }]
+        role: "user",
+        parts: [{text: prompt}],
+      }],
     });
 
     const category = result.response.candidates[0].content.parts[0].text.trim().toLowerCase();
 
     // Validate category
-    const validCategories = ['tutorial', 'api', 'guide', 'cookbook', 'reference'];
-    return validCategories.includes(category) ? category : 'guide';
-
+    const validCategories = ["tutorial", "api", "guide", "cookbook", "reference"];
+    return validCategories.includes(category) ? category : "guide";
   } catch (error) {
-    console.error('Error classifying content:', error);
-    return 'guide';
+    console.error("Error classifying content:", error);
+    return "guide";
   }
 }
 
@@ -209,5 +205,5 @@ module.exports = {
   generateAnswerFromContext,
   generateConversationTitle,
   summarizeText,
-  classifyContent
+  classifyContent,
 };
