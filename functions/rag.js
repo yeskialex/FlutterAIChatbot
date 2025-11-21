@@ -1,60 +1,62 @@
-const { VertexAI } = require('@google-cloud/vertexai');
-const { Storage } = require('@google-cloud/storage');
+const {VertexAI} = require("@google-cloud/vertexai");
+const {Storage} = require("@google-cloud/storage");
 
 // Initialize Vertex AI and Storage
-const vertex_ai = new VertexAI({
-  project: 'hi-project-flutter-chatbot',
-  location: 'us-central1'
+// Note: vertexAi is reserved for future direct usage
+// eslint-disable-next-line no-unused-vars
+const vertexAi = new VertexAI({
+  project: "hi-project-flutter-chatbot",
+  location: "us-central1",
 });
 
 const storage = new Storage();
-const bucket = storage.bucket('hi-project-flutter-chatbot-vectors');
+const bucket = storage.bucket("hi-project-flutter-chatbot-vectors");
 
 // Vector Search Index configuration
-const INDEX_ID = '2259692108149424128';
-const PROJECT_ID = 'hi-project-flutter-chatbot';
-const LOCATION = 'us-central1';
+const INDEX_ID = "2259692108149424128";
+const PROJECT_ID = "hi-project-flutter-chatbot";
+const LOCATION = "us-central1";
 const INDEX_ENDPOINT = `projects/${PROJECT_ID}/locations/${LOCATION}/indexes/${INDEX_ID}`;
 
 /**
  * Generate embeddings for text using Vertex AI
  * @param {string} text - Text to embed
- * @returns {Promise<number[]>} - 768-dimensional embedding vector
+ * @return {Promise<number[]>} - 768-dimensional embedding vector
  */
 async function generateEmbedding(text) {
   try {
     // Use Google Auth to call Vertex AI REST API directly
-    const { GoogleAuth } = require('google-auth-library');
+    const {GoogleAuth} = require("google-auth-library");
     const auth = new GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/cloud-platform']
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
     });
 
     const authClient = await auth.getClient();
-    const projectId = 'hi-project-flutter-chatbot';
-    const location = 'us-central1';
+    const projectId = "hi-project-flutter-chatbot";
+    const location = "us-central1";
 
     const url = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/text-embedding-004:predict`;
 
     const requestBody = {
       instances: [{
-        content: text
-      }]
+        content: text,
+      }],
     };
 
     const response = await authClient.request({
       url: url,
-      method: 'POST',
-      data: requestBody
+      method: "POST",
+      data: requestBody,
     });
 
     if (response.data.predictions && response.data.predictions[0]) {
       return response.data.predictions[0].embeddings.values;
     } else {
-      console.log('Full API response:', JSON.stringify(response.data, null, 2));
-      throw new Error('Unexpected API response structure');
+      console.log("Full API response:", JSON.stringify(response.data, null, 2));
+      throw new Error("Unexpected API response structure");
     }
   } catch (error) {
-    console.error('Error generating embedding:', error);
+    console.error("Error generating embedding:", error);
     throw error;
   }
 }
@@ -62,7 +64,7 @@ async function generateEmbedding(text) {
 /**
  * Add documents to vector index
  * @param {Array} documents - Array of {id, text, metadata} objects
- * @returns {Promise<void>}
+ * @return {Promise<void>}
  */
 async function addDocumentsToIndex(documents) {
   try {
@@ -76,12 +78,12 @@ async function addDocumentsToIndex(documents) {
         embedding: embedding,
         restricts: [],
         allows: [],
-        metadata: doc.metadata || {}
+        metadata: doc.metadata || {},
       });
     }
 
     // Create JSONL file for batch upload
-    const jsonlContent = embeddings.map(item => JSON.stringify(item)).join('\n');
+    const jsonlContent = embeddings.map((item) => JSON.stringify(item)).join("\n");
     const timestamp = Date.now();
     const fileName = `batch_${timestamp}.jsonl`;
 
@@ -89,8 +91,8 @@ async function addDocumentsToIndex(documents) {
     const file = bucket.file(`updates/${fileName}`);
     await file.save(jsonlContent, {
       metadata: {
-        contentType: 'application/json'
-      }
+        contentType: "application/json",
+      },
     });
 
     console.log(`Uploaded ${embeddings.length} embeddings to ${fileName}`);
@@ -101,11 +103,10 @@ async function addDocumentsToIndex(documents) {
     return {
       success: true,
       fileName: fileName,
-      count: embeddings.length
+      count: embeddings.length,
     };
-
   } catch (error) {
-    console.error('Error adding documents to index:', error);
+    console.error("Error adding documents to index:", error);
     throw error;
   }
 }
@@ -114,7 +115,7 @@ async function addDocumentsToIndex(documents) {
  * Search for similar documents in vector index
  * @param {string} query - Search query text
  * @param {number} topK - Number of results to return (default: 5)
- * @returns {Promise<Array>} - Array of similar documents with scores
+ * @return {Promise<Array>} - Array of similar documents with scores
  */
 async function findSimilarDocuments(query, topK = 5) {
   try {
@@ -127,17 +128,17 @@ async function findSimilarDocuments(query, topK = 5) {
       // TODO: Implement actual Vector Search API call when index is ready
       // For now, use hybrid approach: Firestore + embedding similarity calculation
 
-      const admin = require('firebase-admin');
+      const admin = require("firebase-admin");
       const db = admin.firestore();
 
       // Get all document chunks from Firestore
-      const snapshot = await db.collection('document_chunks')
-        .orderBy('createdAt', 'desc')
-        .limit(topK * 3) // Get more docs for similarity calculation
-        .get();
+      const snapshot = await db.collection("document_chunks")
+          .orderBy("createdAt", "desc")
+          .limit(topK * 3) // Get more docs for similarity calculation
+          .get();
 
       if (snapshot.empty) {
-        console.log('No crawled documents found, returning empty results');
+        console.log("No crawled documents found, returning empty results");
         return [];
       }
 
@@ -160,29 +161,27 @@ async function findSimilarDocuments(query, topK = 5) {
           lastUpdated: data.lastUpdated,
           similarity: similarity,
           metadata: {
-            title: data.title || data.metadata?.title || 'Flutter Documentation',
-            section: data.metadata?.section || 'General',
-            type: data.contentType || data.metadata?.type || 'guide'
-          }
+            title: data.title || data.metadata?.title || "Flutter Documentation",
+            section: data.metadata?.section || "General",
+            type: data.contentType || data.metadata?.type || "guide",
+          },
         });
       }
 
       // Sort by similarity score (highest first) and return top K
       const sortedDocs = documents
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, topK);
+          .sort((a, b) => b.similarity - a.similarity)
+          .slice(0, topK);
 
       console.log(`Found ${sortedDocs.length} documents with vector similarity`);
       return sortedDocs;
-
     } catch (vectorError) {
-      console.error('Vector search error, using basic search:', vectorError);
+      console.error("Vector search error, using basic search:", vectorError);
       // Fallback to basic Firestore search
       return await basicFirestoreSearch(query, topK);
     }
-
   } catch (error) {
-    console.error('Error searching documents:', error);
+    console.error("Error searching documents:", error);
     throw error;
   }
 }
@@ -191,7 +190,7 @@ async function findSimilarDocuments(query, topK = 5) {
  * Calculate cosine similarity between two vectors
  * @param {number[]} vectorA
  * @param {number[]} vectorB
- * @returns {number} Similarity score between 0 and 1
+ * @return {number} Similarity score between 0 and 1
  */
 function calculateCosineSimilarity(vectorA, vectorB) {
   const dotProduct = vectorA.reduce((sum, a, i) => sum + a * vectorB[i], 0);
@@ -204,19 +203,19 @@ function calculateCosineSimilarity(vectorA, vectorB) {
  * Basic Firestore search fallback
  * @param {string} query
  * @param {number} topK
- * @returns {Promise<Array>}
+ * @return {Promise<Array>}
  */
 async function basicFirestoreSearch(query, topK) {
-  const admin = require('firebase-admin');
+  const admin = require("firebase-admin");
   const db = admin.firestore();
 
-  const snapshot = await db.collection('document_chunks')
-    .orderBy('createdAt', 'desc')
-    .limit(topK)
-    .get();
+  const snapshot = await db.collection("document_chunks")
+      .orderBy("createdAt", "desc")
+      .limit(topK)
+      .get();
 
   const documents = [];
-  snapshot.forEach(doc => {
+  snapshot.forEach((doc) => {
     const data = doc.data();
     documents.push({
       id: data.id,
@@ -225,10 +224,10 @@ async function basicFirestoreSearch(query, topK) {
       lastUpdated: data.lastUpdated,
       similarity: 0.7, // Default similarity for basic search
       metadata: {
-        title: data.title || data.metadata?.title || 'Flutter Documentation',
-        section: data.metadata?.section || 'General',
-        type: data.contentType || data.metadata?.type || 'guide'
-      }
+        title: data.title || data.metadata?.title || "Flutter Documentation",
+        section: data.metadata?.section || "General",
+        type: data.contentType || data.metadata?.type || "guide",
+      },
     });
   });
 
@@ -237,17 +236,12 @@ async function basicFirestoreSearch(query, topK) {
 
 /**
  * Check if vector index is ready
- * @returns {Promise<boolean>} - Whether index is ready for use
+ * @return {Promise<boolean>} - Whether index is ready for use
  */
 async function isIndexReady() {
-  try {
-    // TODO: Implement actual index status check
-    // For now, return false since index is still building
-    return false;
-  } catch (error) {
-    console.error('Error checking index status:', error);
-    return false;
-  }
+  // TODO: Implement actual index status check
+  // For now, return false since index is still building
+  return false;
 }
 
 module.exports = {
@@ -256,5 +250,5 @@ module.exports = {
   findSimilarDocuments,
   isIndexReady,
   INDEX_ID,
-  INDEX_ENDPOINT
+  INDEX_ENDPOINT,
 };

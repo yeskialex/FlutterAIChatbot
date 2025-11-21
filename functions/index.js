@@ -25,7 +25,7 @@ admin.initializeApp();
 // functions should each use functions.runWith({ maxInstances: 10 }) instead.
 // In the v1 API, each function can only serve one request per container, so
 // this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({maxInstances: 10});
 
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
@@ -43,10 +43,10 @@ exports.testFirestore = onRequest({cors: true}, async (request, response) => {
     const testDoc = {
       message: "Firebase connection test",
       timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      testId: Math.random().toString(36).substr(2, 9)
+      testId: Math.random().toString(36).substr(2, 9),
     };
 
-    const docRef = await db.collection('test').add(testDoc);
+    const docRef = await db.collection("test").add(testDoc);
     logger.info(`Test document created with ID: ${docRef.id}`);
 
     // Read operation: Retrieve the document we just created
@@ -59,15 +59,14 @@ exports.testFirestore = onRequest({cors: true}, async (request, response) => {
       success: true,
       message: "Firebase Firestore connection test successful",
       documentId: docRef.id,
-      data: data
+      data: data,
     });
-
   } catch (error) {
     logger.error("Firebase connection test failed", error);
     response.status(500).json({
       success: false,
       message: "Firebase connection test failed",
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -75,17 +74,17 @@ exports.testFirestore = onRequest({cors: true}, async (request, response) => {
 // Simple test function removed
 
 // Export mock RAG functions for frontend testing
-const { mockRAG, mockHistory } = require('./mockRAG');
+const {mockRAG, mockHistory} = require("./mockRAG");
 exports.mockRAG = mockRAG;
 exports.mockHistory = mockHistory;
 
 // Export real RAG functions
-const { generateAnswer, getHistory } = require('./generateAnswer');
+const {generateAnswer, getHistory} = require("./generateAnswer");
 exports.generateAnswer = generateAnswer;
 exports.getHistory = getHistory;
 
 // Export crawler function
-const { runCrawler } = require('./runCrawler');
+const {runCrawler} = require("./runCrawler");
 exports.runCrawler = runCrawler;
 
 // Content-only crawler removed
