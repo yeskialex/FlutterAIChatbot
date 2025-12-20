@@ -1,4 +1,5 @@
 const {onRequest} = require("firebase-functions/v2/https");
+const {defineString} = require("firebase-functions/params");
 const {Octokit} = require("@octokit/rest");
 const axios = require("axios");
 const matter = require("gray-matter");
@@ -10,18 +11,21 @@ const {addDocumentsToIndex} = require("./rag");
 const GITHUB_OWNER = "flutter";
 const GITHUB_REPO = "website";
 const GITHUB_BRANCH = "main";
-const DOCS_PATH = "src/content/docs"; // Flutter website docs path
+const DOCS_PATH = "src"; // Flutter website docs path
 
-// Initialize Octokit (GitHub API client)
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN, // Set via Firebase config
+// Define GitHub token parameter
+const githubToken = defineString("GITHUB_TOKEN", {
+  default: "",
 });
+
+// Note: Octokit will be initialized inside the function with the token
 
 /**
  * Fetch file tree from GitHub repository
+ * @param {Octokit} octokit - GitHub API client
  * @return {Promise<Array>} Array of markdown file objects
  */
-async function fetchGitHubFileTree() {
+async function fetchGitHubFileTree(octokit) {
   try {
     console.log(`Fetching file tree from ${GITHUB_OWNER}/${GITHUB_REPO}...`);
 
@@ -79,10 +83,11 @@ async function downloadFileContent(filePath) {
 
 /**
  * Get latest commit SHA for a file
+ * @param {Octokit} octokit - GitHub API client
  * @param {string} filePath - File path
  * @return {Promise<string>} Commit SHA
  */
-async function getLatestCommitSha(filePath) {
+async function getLatestCommitSha(octokit, filePath) {
   try {
     const {data} = await octokit.repos.listCommits({
       owner: GITHUB_OWNER,
@@ -434,10 +439,15 @@ exports.runGitHubSync = onRequest({
 
     console.log(`Starting GitHub sync (testMode: ${testMode}, batchSize: ${batchSize})`);
 
-    // Check GitHub token
-    if (!process.env.GITHUB_TOKEN) {
+    // Initialize Octokit with token
+    const token = githubToken.value() || process.env.GITHUB_TOKEN;
+    if (!token) {
       console.warn("GITHUB_TOKEN not set, API rate limits will apply");
     }
+
+    const octokit = new Octokit({
+      auth: token,
+    });
 
     // Reset progress if requested
     if (resetProgress) {
@@ -466,7 +476,7 @@ exports.runGitHubSync = onRequest({
     }
 
     // Fetch file tree from GitHub
-    const githubFiles = await fetchGitHubFileTree();
+    const githubFiles = await fetchGitHubFileTree(octokit);
     const totalFiles = githubFiles.length;
 
     // Update total files if changed
@@ -502,7 +512,7 @@ exports.runGitHubSync = onRequest({
 
       try {
         // Get latest commit SHA
-        const commitSha = await getLatestCommitSha(fileData.path);
+        const commitSha = await getLatestCommitSha(octokit, fileData.path);
 
         if (!commitSha) {
           console.log(`⏭️  Skipping ${fileData.path} (no commit history)`);
