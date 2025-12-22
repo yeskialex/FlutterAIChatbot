@@ -171,8 +171,12 @@ Summary:`;
  * @return {Promise<string>} - Content type (tutorial, api, guide, etc.)
  */
 async function classifyContent(content) {
-  try {
-    const prompt = `Classify this Flutter documentation content into one of these categories:
+  const maxRetries = 3;
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const prompt = `Classify this Flutter documentation content into one of these categories:
 - tutorial: Step-by-step instructions
 - api: API reference documentation
 - guide: Conceptual explanations
@@ -183,22 +187,33 @@ Content: ${content.substring(0, 500)}...
 
 Category:`;
 
-    const result = await model.generateContent({
-      contents: [{
-        role: "user",
-        parts: [{text: prompt}],
-      }],
-    });
+      const result = await model.generateContent({
+        contents: [{
+          role: "user",
+          parts: [{text: prompt}],
+        }],
+      });
 
-    const category = result.response.candidates[0].content.parts[0].text.trim().toLowerCase();
+      const category = result.response.candidates[0].content.parts[0].text.trim().toLowerCase();
 
-    // Validate category
-    const validCategories = ["tutorial", "api", "guide", "cookbook", "reference"];
-    return validCategories.includes(category) ? category : "guide";
-  } catch (error) {
-    console.error("Error classifying content:", error);
-    return "guide";
+      // Validate category
+      const validCategories = ["tutorial", "api", "guide", "cookbook", "reference"];
+      return validCategories.includes(category) ? category : "guide";
+    } catch (error) {
+      lastError = error;
+      console.error(`Error classifying content (attempt ${attempt}/${maxRetries}):`, error.message);
+
+      if (attempt < maxRetries) {
+        // Wait before retry (exponential backoff)
+        const waitTime = Math.pow(2, attempt) * 1000;
+        console.log(`Retrying in ${waitTime}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      }
+    }
   }
+
+  console.error("Failed to classify content after all retries:", lastError);
+  return "guide";
 }
 
 module.exports = {
