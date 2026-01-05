@@ -10,7 +10,7 @@ A RAG (Retrieval-Augmented Generation) based chatbot for Flutter documentation, 
 - **Backend (FaaS)**: Google Cloud Functions (Node.js 22)
 - **Data Collection**: GitHub API (Octokit)
 - **Data Storage & Indexing (RAG Core)**: Google Vertex AI Vector Search
-- **AI / Language Model**: Google Gemini 2.5 Flash
+- **AI / Language Model**: Google Gemini 2.5 Flash Lite
 - **Embedding Model**: Google text-embedding-004 (768 dimensions)
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth (Google & Email)
@@ -104,7 +104,7 @@ This happens instantly when a user asks a question in the chat interface.
    - Returns top matching documentation sections
 4. **🧠 Answer Generation** ([generateAnswer.js](functions/generateAnswer.js))
    - Receives user question + relevant context documents
-   - Sends to Google Gemini 2.5 Flash for answer generation
+   - Sends to Google Gemini 2.5 Flash Lite for answer generation
    - Uses low temperature (0.1) for factual, consistent responses
    - Formats and returns the final answer
 5. **💬 Chat History** → Saves conversation to Firestore
@@ -118,7 +118,7 @@ This happens instantly when a user asks a question in the chat interface.
 
 ## AI Model Configuration
 
-### Gemini 2.5 Flash (LLM)
+### Gemini 2.5 Flash Lite (LLM)
 - **Location**: us-central1
 - **Max Output Tokens**: 2048
 - **Temperature**: 0.1 (factual, low creativity)

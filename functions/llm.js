@@ -8,7 +8,7 @@ const vertexAi = new VertexAI({
 
 // Get the Gemini model
 const model = vertexAi.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-2.5-flash-lite",
   generation_config: {
     max_output_tokens: 2048,
     temperature: 0.1,
