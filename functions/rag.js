@@ -148,13 +148,41 @@ async function findSimilarDocuments(query, topK = 5) {
 
       // Use simple text-based similarity (faster, no embedding generation needed)
       const queryLower = query.toLowerCase();
-      const queryTerms = queryLower.split(/\s+/).filter((t) => t.length > 2);
+      // Split by whitespace and remove punctuation
+      const queryTerms = queryLower
+          .replace(/[^a-z0-9\s]/g, " ") // Replace punctuation with space
+          .split(/\s+/)
+          .filter((t) => t.length > 2);
 
       console.log(`Query: "${query}", Terms: [${queryTerms.join(", ")}]`);
 
-      // Extract key terms (remove common words)
-      const commonWords = new Set(["what", "is", "the", "a", "an", "how", "to", "in", "on", "at", "for", "with", "about"]);
+      // Extract key terms (remove common words and generic verbs)
+      const commonWords = new Set([
+        "what", "is", "the", "a", "an", "how", "to", "in", "on", "at", "for", "with", "about",
+        "do", "i", "my", "are", "of", "from", "by", "as", "be", "can", "this", "that",
+        // Generic action verbs that don't help with search
+        "add", "use", "make", "get", "set", "implement", "create", "build", "using",
+        "functionality", "feature", "features", "best", "good",
+      ]);
       const keyTerms = queryTerms.filter((term) => !commonWords.has(term));
+
+      // Add synonyms for common technical terms to improve matching
+      const synonymMap = {
+        "authentication": ["auth", "login", "signin", "signup", "user", "account", "firebase", "google", "oauth"],
+        "payment": ["billing", "purchase", "monetization", "subscription", "checkout", "stripe", "iap"],
+        "ui": ["interface", "design", "layout", "screen", "view", "theme", "styling"],
+        "widgets": ["widget", "component", "ui", "element", "scaffold", "container"],
+        "login": ["auth", "authentication", "signin", "firebase", "user"],
+        "firebase": ["auth", "authentication", "firestore", "database", "backend"],
+      };
+
+      // Expand query with synonyms
+      const expandedTerms = [...keyTerms];
+      for (const term of keyTerms) {
+        if (synonymMap[term]) {
+          expandedTerms.push(...synonymMap[term]);
+        }
+      }
 
       console.log(`Key terms after filtering: [${keyTerms.join(", ")}]`);
 
@@ -202,8 +230,10 @@ async function findSimilarDocuments(query, topK = 5) {
         }
 
         // Key term matches (weighted more heavily)
-        for (const term of keyTerms) {
-          let termWeight = 1.0;
+        // Use expandedTerms (includes synonyms) for better matching
+        for (const term of expandedTerms) {
+          // Original key terms get higher weight than synonyms
+          let termWeight = keyTerms.includes(term) ? 1.0 : 0.7;
 
           // Title matches are most important
           if (titleLower.includes(term)) {
