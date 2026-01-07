@@ -4,10 +4,11 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import remarkGfm from 'remark-gfm';
 import './MessageBubble.css';
-import { HiUser, HiLightningBolt, HiRefresh } from 'react-icons/hi';
+import { HiUser, HiLightningBolt, HiRefresh, HiClipboardCopy, HiClipboardCheck } from 'react-icons/hi';
 
 const MessageBubble = ({ message, language, onRegenerate }) => {
   const [showSources, setShowSources] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const formatTimestamp = (timestamp) => {
     let date;
@@ -35,6 +36,16 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleCopyAnswer = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
   };
 
   // Custom components for ReactMarkdown
@@ -160,16 +171,30 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
           </div>
         )}
 
-        {!message.error && onRegenerate && (
+        <div className="message-actions">
           <button
-            className="regenerate-btn"
-            onClick={() => onRegenerate(message.id)}
-            title={language === 'ko' ? '다시 생성' : 'Regenerate'}
+            className="copy-answer-btn"
+            onClick={handleCopyAnswer}
+            title={language === 'ko' ? '답변 복사' : 'Copy answer'}
           >
-            <HiRefresh />
-            {language === 'ko' ? '다시 생성' : 'Regenerate'}
+            {copied ? <HiClipboardCheck /> : <HiClipboardCopy />}
+            {copied
+              ? (language === 'ko' ? '복사됨!' : 'Copied!')
+              : (language === 'ko' ? '복사' : 'Copy')
+            }
           </button>
-        )}
+
+          {!message.error && onRegenerate && (
+            <button
+              className="regenerate-btn"
+              onClick={() => onRegenerate(message.id)}
+              title={language === 'ko' ? '다시 생성' : 'Regenerate'}
+            >
+              <HiRefresh />
+              {language === 'ko' ? '다시 생성' : 'Regenerate'}
+            </button>
+          )}
+        </div>
 
         <div className="message-time">{formatTimestamp(message.timestamp)}</div>
       </div>

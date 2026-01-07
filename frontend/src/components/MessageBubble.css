@@ -335,6 +335,46 @@
   text-align: left;
 }
 
+/* Message action buttons container */
+.message-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+/* Copy answer button */
+.copy-answer-btn {
+  background: transparent;
+  border: 1px solid var(--color-dark-border);
+  color: var(--color-dark-text-secondary);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  transition: all var(--transition-base);
+}
+
+.copy-answer-btn:hover {
+  background: var(--color-dark-surface-2);
+  color: var(--color-dark-text-primary);
+  border-color: var(--color-primary);
+}
+
+.copy-answer-btn:active {
+  transform: scale(0.98);
+}
+
+/* Show success state when copied */
+.copy-answer-btn:has(svg:first-child) {
+  color: #4CAF50;
+  border-color: #4CAF50;
+}
+
 /* Regenerate button */
 .regenerate-btn {
   background: transparent;
@@ -345,7 +385,6 @@
   cursor: pointer;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  margin-top: var(--spacing-md);
   display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
