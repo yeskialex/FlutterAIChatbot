@@ -37,6 +37,23 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
     });
   };
 
+  // Process message content to make [Source X] clickable
+  const processMessageContent = (content, sources) => {
+    if (!sources || sources.length === 0) {
+      return content;
+    }
+
+    // Replace [Source X] with markdown links
+    return content.replace(/\[Source (\d+)\]/g, (match, sourceNum) => {
+      const sourceIndex = parseInt(sourceNum) - 1;
+      if (sourceIndex >= 0 && sourceIndex < sources.length) {
+        const source = sources[sourceIndex];
+        return `[[Source ${sourceNum}]](${source.url})`;
+      }
+      return match;
+    });
+  };
+
   // Custom components for ReactMarkdown
   const markdownComponents = {
     code({ node, inline, className, children, ...props }) {
@@ -69,6 +86,31 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
         </code>
       );
     },
+    // Custom renderer for links to style source citations
+    a({ node, children, href, ...props }) {
+      const isSourceLink = children && children.toString().match(/\[Source \d+\]/);
+
+      if (isSourceLink) {
+        return (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-source-link"
+            title={`Open source documentation`}
+            {...props}
+          >
+            {children}
+          </a>
+        );
+      }
+
+      return (
+        <a href={href} {...props}>
+          {children}
+        </a>
+      );
+    },
   };
 
   if (message.type === 'user') {
@@ -97,7 +139,7 @@ const MessageBubble = ({ message, language, onRegenerate }) => {
       <div className="message-content">
         <div className={`message-text ${message.error ? 'error-message' : ''}`}>
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-            {message.content}
+            {processMessageContent(message.content, message.sources)}
           </ReactMarkdown>
         </div>
 
