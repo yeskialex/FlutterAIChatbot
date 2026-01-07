@@ -18,6 +18,11 @@ const PROJECT_ID = "hi-project-flutter-chatbot";
 const LOCATION = "us-central1";
 const INDEX_ENDPOINT = `projects/${PROJECT_ID}/locations/${LOCATION}/indexes/${INDEX_ID}`;
 
+// Index Endpoint ID (needed for deployed indexes)
+// This needs to be created and the index deployed to it
+// For now, we'll use null and fallback to keyword search
+const INDEX_ENDPOINT_ID = null; // Set this when index is deployed to an endpoint
+
 /**
  * Generate embeddings for text using Vertex AI
  * @param {string} text - Text to embed
@@ -58,6 +63,100 @@ async function generateEmbedding(text) {
   } catch (error) {
     console.error("Error generating embedding:", error);
     throw error;
+  }
+}
+
+/**
+ * Search Vector Index using Vertex AI Matching Engine
+ * @param {number[]} queryEmbedding - Query embedding vector
+ * @param {number} topK - Number of results to return
+ * @return {Promise<Array>} - Array of matching documents
+ */
+async function searchVectorIndex(queryEmbedding, topK = 5) {
+  try {
+    // Check if index endpoint is configured
+    if (!INDEX_ENDPOINT_ID) {
+      console.log("Vector Search Index Endpoint not configured, using fallback");
+      return null;
+    }
+
+    const {GoogleAuth} = require("google-auth-library");
+    const auth = new GoogleAuth({
+      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+    });
+
+    const authClient = await auth.getClient();
+    const projectId = PROJECT_ID;
+    const location = LOCATION;
+
+    // Vertex AI Matching Engine endpoint - requires deployed index
+    const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/indexEndpoints/${INDEX_ENDPOINT_ID}:findNeighbors`;
+
+    const requestBody = {
+      deployedIndexId: INDEX_ID,
+      queries: [{
+        datapoint: {
+          datapointId: "query",
+          featureVector: queryEmbedding,
+        },
+        neighborCount: topK,
+      }],
+      returnFullDatapoint: false,
+    };
+
+    console.log(`Calling Vector Search API at: ${endpoint}`);
+
+    const response = await authClient.request({
+      url: endpoint,
+      method: "POST",
+      data: requestBody,
+    });
+
+    if (!response.data || !response.data.nearestNeighbors || !response.data.nearestNeighbors[0]) {
+      console.log("No results from Vector Search");
+      return [];
+    }
+
+    const neighbors = response.data.nearestNeighbors[0].neighbors || [];
+    console.log(`Vector Search found ${neighbors.length} neighbors`);
+
+    // Fetch document metadata from Firestore using the IDs
+    const admin = require("firebase-admin");
+    const db = admin.firestore();
+
+    const documents = [];
+    for (const neighbor of neighbors) {
+      const docId = neighbor.datapoint.datapointId;
+      const distance = neighbor.distance || 0;
+      const similarity = 1 - distance; // Convert distance to similarity
+
+      try {
+        const docRef = await db.collection("document_chunks").doc(docId).get();
+        if (docRef.exists) {
+          const data = docRef.data();
+          documents.push({
+            id: docId,
+            content: data.content,
+            url: data.url,
+            lastUpdated: data.lastUpdated,
+            similarity: similarity,
+            metadata: {
+              title: data.title || data.metadata?.title || "Flutter Documentation",
+              section: data.metadata?.section || "General",
+              type: data.contentType || data.metadata?.type || "guide",
+            },
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching document ${docId}:`, error);
+      }
+    }
+
+    return documents;
+  } catch (error) {
+    console.error("Vector Search API error:", error.message);
+    // Return null to trigger fallback
+    return null;
   }
 }
 
@@ -125,9 +224,16 @@ async function findSimilarDocuments(query, topK = 5) {
 
     // Try to use vector search first, fallback to Firestore if needed
     try {
-      // TODO: Implement actual Vector Search API call when index is ready
-      // For now, use hybrid approach: Firestore + embedding similarity calculation
+      // Try actual Vector Search API first
+      const vectorResults = await searchVectorIndex(queryEmbedding, topK);
 
+      if (vectorResults && vectorResults.length > 0) {
+        console.log(`Vector Search returned ${vectorResults.length} results`);
+        return vectorResults;
+      }
+
+      // Fallback to Firestore-based search if Vector Search fails or returns no results
+      console.log("Falling back to Firestore-based keyword search");
       const admin = require("firebase-admin");
       const db = admin.firestore();
 
@@ -364,6 +470,7 @@ module.exports = {
   generateEmbedding,
   addDocumentsToIndex,
   findSimilarDocuments,
+  searchVectorIndex,
   isIndexReady,
   INDEX_ID,
   INDEX_ENDPOINT,

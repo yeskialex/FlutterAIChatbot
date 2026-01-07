@@ -245,10 +245,59 @@ cd functions
 - Multi-language UI support
 
 ### In Progress / Planned ⚠️
-- Full Vertex AI Vector Search integration (currently using text-based fallback)
+- Full Vertex AI Vector Search deployment (code ready, needs Index Endpoint setup)
 - Link attachment content extraction
 - File upload processing and integration into RAG context
 - Enhanced security rules for production
+
+## Vector Search Setup (Optional)
+
+The project includes full Vertex AI Vector Search integration code. To enable it:
+
+### Prerequisites
+1. Vector Search Index is already created: `2259692108149424128`
+2. Embeddings are stored in Cloud Storage: `gs://hi-project-flutter-chatbot-vectors`
+
+### Deployment Steps
+
+1. **Create an Index Endpoint** (one-time setup):
+```bash
+gcloud ai index-endpoints create \
+  --display-name="flutter-docs-endpoint" \
+  --description="Endpoint for Flutter documentation search" \
+  --region=us-central1 \
+  --project=hi-project-flutter-chatbot
+```
+
+2. **Deploy the Index to the Endpoint**:
+```bash
+# Get the endpoint ID from step 1
+export ENDPOINT_ID="<your-endpoint-id>"
+
+gcloud ai index-endpoints deploy-index $ENDPOINT_ID \
+  --deployed-index-id="flutter_docs_deployed" \
+  --display-name="Flutter Docs Index" \
+  --index="2259692108149424128" \
+  --region=us-central1 \
+  --project=hi-project-flutter-chatbot
+```
+
+3. **Update the Code**:
+Edit `functions/rag.js` and set the `INDEX_ENDPOINT_ID`:
+```javascript
+const INDEX_ENDPOINT_ID = "<your-endpoint-id>"; // Replace with actual endpoint ID
+```
+
+4. **Redeploy Cloud Functions**:
+```bash
+firebase deploy --only functions:generateAnswer
+```
+
+### Current Behavior
+- **Without Index Endpoint**: Uses intelligent keyword-based search with synonym expansion
+- **With Index Endpoint**: Uses true semantic vector search for better accuracy
+
+Both approaches work well, but Vector Search provides superior semantic understanding.
 
 ## API Endpoints
 
