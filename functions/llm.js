@@ -8,7 +8,7 @@ const vertexAi = new VertexAI({
 
 // Get the Gemini model
 const model = vertexAi.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-2.5-flash-lite",
   generation_config: {
     max_output_tokens: 2048,
     temperature: 0.1,
@@ -21,11 +21,13 @@ const model = vertexAi.getGenerativeModel({
  * Generate answer from context using Gemini
  * @param {string} question - User's question
  * @param {Array} relevantDocs - Array of relevant documents from vector search
- * @param {Object} options - Additional options
+ * @param {Object} options - Additional options (language, etc.)
  * @return {Promise<Object>} - Generated answer with metadata
  */
 async function generateAnswerFromContext(question, relevantDocs, options = {}) {
   try {
+    const {language = "en"} = options;
+
     // Prepare context from relevant documents
     const context = relevantDocs.map((doc, index) =>
       `[Source ${index + 1}] ${doc.metadata?.title || "Flutter Documentation"}
@@ -35,10 +37,19 @@ Last Updated: ${doc.lastUpdated || "Unknown"}
 ---`,
     ).join("\n\n");
 
+    // Language-specific instructions
+    const languageInstructions = {
+      ko: "IMPORTANT: You MUST respond in Korean (한국어). 모든 답변은 반드시 한국어로 작성해야 합니다.",
+      en: "Respond in English.",
+    };
+
+    const langInstruction = languageInstructions[language] || languageInstructions.en;
+
     // Construct the prompt
     const prompt = `You are a helpful Flutter development assistant. Answer the user's question based on the provided Flutter documentation context.
 
 Guidelines:
+- ${langInstruction}
 - Provide accurate, practical answers based only on the context provided
 - Include code examples when relevant
 - Mention source URLs when referencing specific information

@@ -7,7 +7,7 @@ const {generateAnswerFromContext} = require("./llm");
  * Generate AI-powered answers using RAG
  * HTTP endpoint for the React frontend
  */
-exports.generateAnswer = onRequest({cors: true}, async (req, res) => {
+exports.generateAnswer = onRequest({cors: true, memory: "512MiB"}, async (req, res) => {
   try {
     // Validate request method
     if (req.method !== "POST") {
@@ -24,6 +24,7 @@ exports.generateAnswer = onRequest({cors: true}, async (req, res) => {
       previousMessages = [],
       linkUrl,
       filePath,
+      language = "en",
     } = req.body;
 
     // Validate required fields
@@ -92,7 +93,7 @@ exports.generateAnswer = onRequest({cors: true}, async (req, res) => {
 
     // Step 5: Generate answer using Gemini
     console.log("Step 5: Generating answer with Gemini...");
-    const result = await generateAnswerFromContext(contextualQuestion, relevantDocs);
+    const result = await generateAnswerFromContext(contextualQuestion, relevantDocs, {language});
 
     // Step 6: Save to chat history (if conversationId provided)
     if (conversationId) {

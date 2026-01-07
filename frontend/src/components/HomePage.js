@@ -99,7 +99,7 @@ const HomePage = ({ onStartConversation, user, onSignOut, onTestConversations, o
               onClick={() => onStartConversation({
                 week: 'quick',
                 title: 'Quick Question',
-                prompt: prompt
+                initialPrompt: prompt
               })}
             >
               {prompt}

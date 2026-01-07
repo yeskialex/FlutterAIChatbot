@@ -163,11 +163,13 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
 
     } catch (error) {
       console.error('Error sending message:', error);
+      console.error('Error details:', error.message);
+      console.error('API URL:', process.env.REACT_APP_API_BASE_URL);
 
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        content: currentLang.errorMessage,
+        content: `${currentLang.errorMessage}\n\nError: ${error.message}`,
         error: true,
         timestamp: new Date()
       };
