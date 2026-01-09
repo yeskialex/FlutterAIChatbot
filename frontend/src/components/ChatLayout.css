@@ -31,7 +31,24 @@
 }
 
 .home-wrapper .user-bar {
-  display: none; /* Hide user bar since it's in sidebar */
+  display: flex; /* Show user bar but only for language toggle */
+  justify-content: flex-end; /* Align to right */
+  margin-bottom: 20px;
+  background: transparent; /* Remove background */
+  padding: 0; /* Remove padding */
+  border: none; /* Remove border */
+}
+
+.home-wrapper .user-info {
+  display: none; /* Hide user info since it's in sidebar */
+}
+
+.home-wrapper .user-actions {
+  display: flex; /* Show user actions for language toggle */
+}
+
+.home-wrapper .sign-out-btn {
+  display: none; /* Hide sign out button since it's in sidebar */
 }
 
 .home-wrapper .home-header h1 {

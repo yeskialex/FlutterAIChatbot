@@ -3,8 +3,9 @@ import './AuthPage.css';
 import { signUpWithEmail, signInWithEmail, signInWithGoogle } from '../firebase/authService';
 import { HiCode, HiMail, HiLockClosed, HiUser } from 'react-icons/hi';
 import { FcGoogle } from 'react-icons/fc';
+import LanguageToggle from './LanguageToggle';
 
-const AuthPage = () => {
+const AuthPage = ({ language = 'en', onLanguageChange }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -14,6 +15,54 @@ const AuthPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Localized text
+  const t = {
+    en: {
+      createAccount: 'Create Account',
+      welcomeBack: 'Welcome Back',
+      joinCommunity: 'Join the Flutter learning community',
+      signInContinue: 'Sign in to continue your Flutter journey',
+      fullName: 'Full Name',
+      enterName: 'Enter your full name',
+      email: 'Email Address',
+      enterEmail: 'Enter your email',
+      password: 'Password',
+      enterPassword: 'Enter your password',
+      confirmPassword: 'Confirm Password',
+      confirmPasswordPlaceholder: 'Confirm your password',
+      signUp: 'Create Account',
+      signIn: 'Sign In',
+      pleaseWait: 'Please wait...',
+      or: 'or',
+      continueGoogle: 'Continue with Google',
+      alreadyAccount: 'Already have an account?',
+      noAccount: "Don't have an account?",
+    },
+    ko: {
+      createAccount: '계정 만들기',
+      welcomeBack: '환영합니다',
+      joinCommunity: 'Flutter 학습 커뮤니티에 참여하세요',
+      signInContinue: 'Flutter 여정을 계속하려면 로그인하세요',
+      fullName: '이름',
+      enterName: '이름을 입력하세요',
+      email: '이메일 주소',
+      enterEmail: '이메일을 입력하세요',
+      password: '비밀번호',
+      enterPassword: '비밀번호를 입력하세요',
+      confirmPassword: '비밀번호 확인',
+      confirmPasswordPlaceholder: '비밀번호를 다시 입력하세요',
+      signUp: '계정 만들기',
+      signIn: '로그인',
+      pleaseWait: '잠시만 기다려주세요...',
+      or: '또는',
+      continueGoogle: 'Google 계정으로 계속하기',
+      alreadyAccount: '이미 계정이 있으신가요?',
+      noAccount: '계정이 없으신가요?',
+    }
+  };
+
+  const text = t[language] || t.en;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -118,20 +167,23 @@ const AuthPage = () => {
 
   return (
     <div className="auth-page">
+      <div className="language-toggle-container">
+        <LanguageToggle language={language} onLanguageChange={onLanguageChange} />
+      </div>
       <div className="auth-container">
         <div className="auth-header">
           <h1>
             <HiCode className="header-icon" />
             Flutter AI Chatbot
           </h1>
-          <h2>{isSignUp ? 'Create Account' : 'Welcome Back'}</h2>
-          <p>{isSignUp ? 'Join the Flutter learning community' : 'Sign in to continue your Flutter journey'}</p>
+          <h2>{isSignUp ? text.createAccount : text.welcomeBack}</h2>
+          <p>{isSignUp ? text.joinCommunity : text.signInContinue}</p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           {isSignUp && (
             <div className="form-group">
-              <label htmlFor="name">Full Name</label>
+              <label htmlFor="name">{text.fullName}</label>
               <div className="input-wrapper">
                 <HiUser className="input-icon" />
                 <input
@@ -140,7 +192,7 @@ const AuthPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Enter your full name"
+                  placeholder={text.enterName}
                   required={isSignUp}
                 />
               </div>
@@ -148,7 +200,7 @@ const AuthPage = () => {
           )}
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
+            <label htmlFor="email">{text.email}</label>
             <div className="input-wrapper">
               <HiMail className="input-icon" />
               <input
@@ -157,14 +209,14 @@ const AuthPage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="Enter your email"
+                placeholder={text.enterEmail}
                 required
               />
             </div>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{text.password}</label>
             <div className="input-wrapper">
               <HiLockClosed className="input-icon" />
               <input
@@ -173,7 +225,7 @@ const AuthPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                placeholder="Enter your password"
+                placeholder={text.enterPassword}
                 required
               />
             </div>
@@ -181,7 +233,7 @@ const AuthPage = () => {
 
           {isSignUp && (
             <div className="form-group">
-              <label htmlFor="confirmPassword">Confirm Password</label>
+              <label htmlFor="confirmPassword">{text.confirmPassword}</label>
               <div className="input-wrapper">
                 <HiLockClosed className="input-icon" />
                 <input
@@ -190,7 +242,7 @@ const AuthPage = () => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  placeholder="Confirm your password"
+                  placeholder={text.confirmPasswordPlaceholder}
                   required={isSignUp}
                 />
               </div>
@@ -204,11 +256,11 @@ const AuthPage = () => {
             className="auth-btn primary"
             disabled={loading}
           >
-            {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
+            {loading ? text.pleaseWait : (isSignUp ? text.signUp : text.signIn)}
           </button>
 
           <div className="divider">
-            <span>or</span>
+            <span>{text.or}</span>
           </div>
 
           <button
@@ -218,15 +270,15 @@ const AuthPage = () => {
             disabled={loading}
           >
             <FcGoogle className="google-icon" />
-            Continue with Google
+            {text.continueGoogle}
           </button>
         </form>
 
         <div className="auth-footer">
           <p>
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            {isSignUp ? text.alreadyAccount : text.noAccount}{' '}
             <button className="link-btn" onClick={toggleMode}>
-              {isSignUp ? 'Sign In' : 'Sign Up'}
+              {isSignUp ? text.signIn : text.signUp}
             </button>
           </p>
         </div>

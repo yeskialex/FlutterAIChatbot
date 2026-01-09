@@ -5,6 +5,14 @@
   align-items: center;
   justify-content: center;
   padding: var(--spacing-xl);
+  position: relative;
+}
+
+.language-toggle-container {
+  position: absolute;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  z-index: 10;
 }
 
 .auth-container {
