@@ -8,7 +8,7 @@ const {crawlUrl} = require("./urlCrawler");
  * Generate AI-powered answers using RAG
  * HTTP endpoint for the React frontend
  */
-exports.generateAnswer = onRequest({cors: true, memory: "2GiB", timeoutSeconds: 540}, async (req, res) => {
+exports.generateAnswer = onRequest({cors: true, memory: "512MiB"}, async (req, res) => {
   try {
     // Validate request method
     if (req.method !== "POST") {
