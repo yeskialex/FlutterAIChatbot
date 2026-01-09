@@ -53,6 +53,36 @@
   font-size: 0.9rem;
 }
 
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Override LanguageToggle styling for better visibility on HomePage */
+.home-page .language-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.home-page .lang-btn {
+  color: #ffffff;
+}
+
+.home-page .lang-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.home-page .lang-btn.active {
+  background: var(--color-white);
+  color: var(--color-dark-bg);
+}
+
+.home-page .lang-btn.active:hover {
+  background: var(--color-gray-200);
+}
+
 .sign-out-btn {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;

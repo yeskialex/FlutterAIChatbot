@@ -5,11 +5,10 @@ import LanguageToggle from './LanguageToggle';
 import { addMessageToConversation } from '../firebase/chatService';
 import { HiChevronLeft, HiPaperAirplane, HiLink, HiDocumentText, HiX } from 'react-icons/hi';
 
-const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, showBackButton = true }) => {
+const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, showBackButton = true, language = 'en', onLanguageChange }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState('en');
   const [linkUrl, setLinkUrl] = useState('');
   const [attachedFile, setAttachedFile] = useState(null);
   const [showAttachments, setShowAttachments] = useState(false);
@@ -376,7 +375,7 @@ const ChatInterface = ({ conversation, onGoHome, onUpdateConversation, user, sho
             <span className="week-badge">Week {conversation.week}</span>
           )}
         </div>
-        <LanguageToggle language={language} onLanguageChange={setLanguage} />
+        <LanguageToggle language={language} onLanguageChange={onLanguageChange} />
       </header>
 
       <div className="chat-messages">

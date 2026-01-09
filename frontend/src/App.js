@@ -9,6 +9,15 @@ import { signOutUser } from './firebase/authService';
 function App() {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [language, setLanguage] = useState(() => {
+    // Load language preference from localStorage
+    return localStorage.getItem('language') || 'en';
+  });
+
+  // Save language preference to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
 
   // Listen for authentication state changes
   useEffect(() => {
@@ -59,9 +68,9 @@ function App() {
   return (
     <div className="App">
       {user ? (
-        <ChatLayout user={user} onSignOut={handleSignOut} />
+        <ChatLayout user={user} onSignOut={handleSignOut} language={language} onLanguageChange={setLanguage} />
       ) : (
-        <AuthPage />
+        <AuthPage language={language} onLanguageChange={setLanguage} />
       )}
     </div>
   );

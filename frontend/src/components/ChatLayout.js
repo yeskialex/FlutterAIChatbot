@@ -12,7 +12,7 @@ import {
 } from '../firebase/chatService';
 import { createTestConversations, testConversationRetrieval } from '../firebase/testConversations';
 
-const ChatLayout = ({ user, onSignOut }) => {
+const ChatLayout = ({ user, onSignOut, language, onLanguageChange }) => {
   const [conversations, setConversations] = useState([]);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [currentView, setCurrentView] = useState('home');
@@ -198,6 +198,8 @@ const ChatLayout = ({ user, onSignOut }) => {
               isCompact={true} // Add compact mode for sidebar layout
               onTestConversations={handleTestConversations}
               onTestRetrieval={handleTestRetrieval}
+              language={language}
+              onLanguageChange={onLanguageChange}
             />
           </div>
         ) : (
@@ -207,6 +209,8 @@ const ChatLayout = ({ user, onSignOut }) => {
             onUpdateConversation={handleUpdateConversation}
             user={user}
             showBackButton={false} // Remove back button since we have sidebar
+            language={language}
+            onLanguageChange={onLanguageChange}
           />
         )}
       </div>
