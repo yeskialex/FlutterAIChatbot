@@ -3,14 +3,14 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration
-// Replace these with your actual Firebase config values
+// Using environment variables for security
 const firebaseConfig = {
-  apiKey: "AIzaSyCqb0IN-ryzpA0sn7YH5AOgipf2uWe9ydQ",
-  authDomain: "hi-project-flutter-chatbot.firebaseapp.com",
-  projectId: "hi-project-flutter-chatbot",
-  storageBucket: "hi-project-flutter-chatbot.firebasestorage.app",
-  messagingSenderId: "433865201521",
-  appId: "1:433865201521:web:7bf5b39dc47546f75508d0"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
 // Initialize Firebase

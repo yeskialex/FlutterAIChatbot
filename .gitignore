@@ -22,3 +22,4 @@ public/
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
+/Users/kim/Documents/GitHub/Flutter_Chatbot/frontend/.env
